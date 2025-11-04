@@ -114,20 +114,39 @@ class ScoringEngine:
         return None
 
     def create_special_bonus_events(
-        self, player_id: str, winning_pattern: PlayPattern, round_number: int
+        self,
+        player_id: str,
+        winning_pattern: PlayPattern,
+        round_number: int,
+        is_round_winning_play: bool = True
     ) -> list[ScoringEvent]:
         """
         Create scoring events for special bonuses (Tongzi, Dizha).
+
+        IMPORTANT: According to game rules, only the FINAL winning play of a round
+        receives special bonuses. If player A plays K Tongzi and player B beats it
+        with A Tongzi, only player B gets the bonus (200 points), player A gets nothing.
 
         Args:
             player_id: ID of the player who won
             winning_pattern: The winning pattern
             round_number: Current round number
+            is_round_winning_play: Whether this is the final winning play of the round.
+                Only when True will special bonuses be awarded. Default True for
+                backward compatibility.
 
         Returns:
-            List of ScoringEvents for bonuses
+            List of ScoringEvents for bonuses (empty if not round winning play)
         """
         events = []
+
+        # Only award special bonuses if this is the round winning play
+        if not is_round_winning_play:
+            logger.debug(
+                f"Skipping special bonus for non-winning play: player={player_id}, "
+                f"pattern={winning_pattern.play_type.name}"
+            )
+            return events
 
         if winning_pattern.play_type == PlayType.TONGZI:
             bonus_points = self._get_tongzi_bonus(winning_pattern.primary_rank)
