@@ -1,7 +1,14 @@
 """Da Tong Zi Rules Engine - Zero Dependency Game Rules Library."""
 
 from .models import Card, Rank, Suit, Deck, GameConfig
-from .patterns import PlayType, PlayPattern, PatternRecognizer, PlayValidator
+from .patterns import (
+    PatternFinder,
+    PatternRecognizer,
+    PlayFormationValidator,
+    PlayPattern,
+    PlayType,
+    PlayValidator,
+)
 from .scoring import BonusType, ScoringEvent, ScoringEngine
 from .ai_helpers import PlayGenerator, HandEvaluator, HandAnalyzer, PatternSuggester
 from .variants import ConfigFactory, VariantValidator
@@ -20,6 +27,8 @@ __all__ = [
     "PlayPattern",
     "PatternRecognizer",
     "PlayValidator",
+    "PatternFinder",
+    "PlayFormationValidator",
     # Scoring
     "BonusType",
     "ScoringEvent",

@@ -114,15 +114,95 @@ def test_card_hash():
     """Test card hashing (for use in sets/dicts)."""
     card1 = Card(Suit.SPADES, Rank.ACE)
     card2 = Card(Suit.SPADES, Rank.ACE)
-    
+
     # Same cards should have same hash
     assert hash(card1) == hash(card2)
-    
+
     # Can be used in set
     card_set = {card1, card2}
     assert len(card_set) == 1  # Same card only counted once
-    
+
     print("✓ Card hash test passed")
+
+
+def test_card_invalid_suit():
+    """Test creating card with invalid suit."""
+    with pytest.raises((ValueError, TypeError)):
+        Card("invalid", Rank.ACE)
+
+    print("✓ Card invalid suit test passed")
+
+
+def test_card_invalid_rank():
+    """Test creating card with invalid rank."""
+    with pytest.raises((ValueError, TypeError)):
+        Card(Suit.SPADES, "invalid")
+
+    print("✓ Card invalid rank test passed")
+
+
+def test_card_scoring_cards():
+    """Test identifying scoring cards."""
+    five = Card(Suit.SPADES, Rank.FIVE)
+    ten = Card(Suit.HEARTS, Rank.TEN)
+    king = Card(Suit.CLUBS, Rank.KING)
+    ace = Card(Suit.DIAMONDS, Rank.ACE)
+
+    assert five.is_scoring_card
+    assert ten.is_scoring_card
+    assert king.is_scoring_card
+    assert not ace.is_scoring_card
+
+    print("✓ Card scoring cards test passed")
+
+
+def test_card_score_values():
+    """Test card score values."""
+    five = Card(Suit.SPADES, Rank.FIVE)
+    ten = Card(Suit.HEARTS, Rank.TEN)
+    king = Card(Suit.CLUBS, Rank.KING)
+    ace = Card(Suit.DIAMONDS, Rank.ACE)
+
+    assert five.score_value == 5
+    assert ten.score_value == 10
+    assert king.score_value == 10
+    assert ace.score_value == 0
+
+    print("✓ Card score values test passed")
+
+
+def test_card_string_representation():
+    """Test card string representation."""
+    card_ace = Card(Suit.SPADES, Rank.ACE)
+    card_ten = Card(Suit.HEARTS, Rank.TEN)
+
+    assert str(card_ace) == "♠A"
+    assert str(card_ten) == "♥10"
+
+    print("✓ Card string representation test passed")
+
+
+def test_deck_deal_single_card():
+    """Test dealing a single card."""
+    deck = Deck.create_standard_deck(num_decks=1)
+    original_count = len(deck)
+
+    card = deck.deal_card()
+
+    assert isinstance(card, Card)
+    assert len(deck) == original_count - 1
+
+    print("✓ Deck deal single card test passed")
+
+
+def test_deck_deal_from_empty():
+    """Test dealing from empty deck."""
+    deck = Deck([])  # Empty deck
+
+    with pytest.raises(ValueError, match="Cannot deal from empty deck"):
+        deck.deal_card()
+
+    print("✓ Deck deal from empty test passed")
 
 
 def test_game_config_default():
@@ -207,11 +287,115 @@ def test_game_config_two_players():
 def test_game_config_four_players():
     """Test game config for 4 players."""
     config = GameConfig(num_players=4)
-    
+
     # 4 players should have finish_bonus = [100, -20, -40, -80]
     assert config.finish_bonus == [100, -20, -40, -80]
-    
+
     print("✓ Game config four players test passed")
+
+
+def test_card_from_string_basic():
+    """Test basic card string parsing."""
+    # Test all suits
+    assert Card.from_string("♠A") == Card(Suit.SPADES, Rank.ACE)
+    assert Card.from_string("♥K") == Card(Suit.HEARTS, Rank.KING)
+    assert Card.from_string("♣Q") == Card(Suit.CLUBS, Rank.QUEEN)
+    assert Card.from_string("♦J") == Card(Suit.DIAMONDS, Rank.JACK)
+
+    print("✓ Card from string basic test passed")
+
+
+def test_card_from_string_all_ranks():
+    """Test parsing all possible ranks."""
+    test_cases = [
+        ("♠5", Suit.SPADES, Rank.FIVE),
+        ("♠6", Suit.SPADES, Rank.SIX),
+        ("♠7", Suit.SPADES, Rank.SEVEN),
+        ("♠8", Suit.SPADES, Rank.EIGHT),
+        ("♠9", Suit.SPADES, Rank.NINE),
+        ("♠10", Suit.SPADES, Rank.TEN),
+        ("♠J", Suit.SPADES, Rank.JACK),
+        ("♠Q", Suit.SPADES, Rank.QUEEN),
+        ("♠K", Suit.SPADES, Rank.KING),
+        ("♠A", Suit.SPADES, Rank.ACE),
+        ("♠2", Suit.SPADES, Rank.TWO),
+    ]
+
+    for card_str, expected_suit, expected_rank in test_cases:
+        card = Card.from_string(card_str)
+        assert card.suit == expected_suit
+        assert card.rank == expected_rank
+
+    print("✓ Card from string all ranks test passed")
+
+
+def test_card_from_string_invalid_inputs():
+    """Test card string parsing with invalid inputs."""
+    invalid_inputs = [
+        "",           # Empty string
+        "A",          # No suit
+        "♠",          # No rank
+        "XA",         # Invalid suit
+        "♠X",         # Invalid rank
+        "♠3",         # Excluded rank
+        "♠4",         # Excluded rank
+        "♠11",        # Invalid rank
+        "♠♠A",        # Too many characters
+    ]
+
+    for invalid_input in invalid_inputs:
+        with pytest.raises(ValueError):
+            Card.from_string(invalid_input)
+
+    print("✓ Card from string invalid inputs test passed")
+
+
+def test_card_string_round_trip():
+    """Test that str(card) and Card.from_string() are consistent."""
+    # Test all valid combinations
+    for suit in Suit:
+        for rank in Rank:
+            original_card = Card(suit, rank)
+            card_str = str(original_card)
+            parsed_card = Card.from_string(card_str)
+            assert parsed_card == original_card
+
+    print("✓ Card string round trip test passed")
+
+
+def test_deck_creation_edge_cases():
+    """Test deck creation with various parameters."""
+    # Empty deck (exclude all ranks)
+    all_ranks = set(Rank)
+    empty_deck = Deck.create_standard_deck(num_decks=1, excluded_ranks=all_ranks)
+    assert len(empty_deck.cards) == 0
+
+    # Single card deck
+    most_ranks = set(Rank) - {Rank.ACE}
+    single_deck = Deck.create_standard_deck(num_decks=1, excluded_ranks=most_ranks)
+    assert len(single_deck.cards) == 4  # 4 suits × 1 rank
+
+    print("✓ Deck creation edge cases test passed")
+
+
+def test_deck_dealing_edge_cases():
+    """Test deck dealing edge cases."""
+    deck = Deck.create_standard_deck(num_decks=1)
+    initial_count = len(deck)
+
+    # Deal all cards
+    all_cards = deck.deal_cards(initial_count)
+    assert len(all_cards) == initial_count
+    assert len(deck) == 0
+
+    # Try to deal from empty deck
+    with pytest.raises(ValueError):
+        deck.deal_card()
+
+    with pytest.raises(ValueError):
+        deck.deal_cards(1)
+
+    print("✓ Deck dealing edge cases test passed")
 
 
 # All tests can be run with pytest

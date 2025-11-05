@@ -91,11 +91,14 @@ class PatternRecognizer:
             return pattern
 
         # Check for airplane patterns
-        pattern = PatternRecognizer._check_airplane_with_wings(cards, rank_counts)
+        # IMPORTANT: Check pure AIRPLANE first, then AIRPLANE_WITH_WINGS
+        # This ensures that if all cards form a valid airplane, we don't
+        # misidentify it as airplane with wings
+        pattern = PatternRecognizer._check_airplane(cards, rank_counts)
         if pattern:
             return pattern
 
-        pattern = PatternRecognizer._check_airplane(cards, rank_counts)
+        pattern = PatternRecognizer._check_airplane_with_wings(cards, rank_counts)
         if pattern:
             return pattern
 
@@ -263,36 +266,54 @@ class PatternRecognizer:
     def _check_airplane_with_wings(
         cards: list[Card], rank_counts: Counter[Rank]
     ) -> PlayPattern | None:
-        """Check for airplane with wings pattern (飞机带翅膀)."""
-        if len(cards) < 10:  # Minimum: 2 triples + 4 pairs
+        """Check for airplane with wings pattern (飞机带翅膀).
+
+        规则：N组连续三张（飞机主体）+ K张任意牌（翅膀）
+        其中 N <= K <= 2N
+        翅膀可以是任意牌（单张、对子、三张、炸弹等）
+
+        关键：贪心选择最大的连续飞机组（如果翅膀中有3张同rank能扩展飞机，应扩展）
+        """
+        if len(cards) < 8:  # Minimum: 2 triples (6) + 2 wings (2)
             return None
 
-        # Count triples
-        triples = [rank for rank, count in rank_counts.items() if count == 3]
+        # Find all ranks with at least 3 cards
+        triple_candidates = [rank for rank, count in rank_counts.items() if count >= 3]
 
-        if len(triples) < 2:
+        if len(triple_candidates) < 2:
             return None
 
-        # Check if triples are consecutive
-        sorted_triples = sorted(triples, key=lambda r: r.value)
-        if not PatternRecognizer._are_consecutive(sorted_triples):
-            return None
+        # Sort candidates by rank value
+        sorted_candidates = sorted(triple_candidates, key=lambda r: r.value)
 
-        # Calculate expected pairs (can be less than number of triples)
-        expected_pairs = len(triples)
-        total_triple_cards = len(triples) * 3
-        remaining_cards = len(cards) - total_triple_cards
+        # Strategy: Greedily select the LARGEST consecutive triple sequence
+        # This ensures that if wings contain 3+ cards of same rank that can extend
+        # the airplane, we prioritize the extended airplane
+        best_airplane = None
+        best_wing_count = None
 
-        if remaining_cards % 2 != 0 or remaining_cards // 2 > expected_pairs:
-            return None
+        # Try all possible consecutive triple combinations, preferring larger airplanes
+        for length in range(len(sorted_candidates), 1, -1):  # Start from longest
+            for i in range(len(sorted_candidates) - length + 1):
+                candidate_ranks = sorted_candidates[i:i + length]
 
-        return PlayPattern(
-            play_type=PlayType.AIRPLANE_WITH_WINGS,
-            primary_rank=sorted_triples[-1],
-            secondary_ranks=sorted_triples,
-            card_count=len(cards),
-            strength=sorted_triples[-1].value * 1000 + len(sorted_triples),
-        )
+                if PatternRecognizer._are_consecutive(candidate_ranks):
+                    num_triples = len(candidate_ranks)
+                    triple_cards = num_triples * 3
+                    wing_cards = len(cards) - triple_cards
+
+                    # Check if wing count is valid: N <= wings <= 2N
+                    if num_triples <= wing_cards <= 2 * num_triples:
+                        # Found valid combination, return immediately (greedy)
+                        return PlayPattern(
+                            play_type=PlayType.AIRPLANE_WITH_WINGS,
+                            primary_rank=candidate_ranks[-1],
+                            secondary_ranks=candidate_ranks,
+                            card_count=len(cards),
+                            strength=candidate_ranks[-1].value * 1000 + len(candidate_ranks),
+                        )
+
+        return None
 
     @staticmethod
     def _check_bomb(
