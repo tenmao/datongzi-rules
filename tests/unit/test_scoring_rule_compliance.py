@@ -11,7 +11,7 @@ from datongzi_rules import (
     Rank,
     Suit,
     ConfigFactory,
-    ScoringEngine,
+    ScoreComputation,
     PatternRecognizer,
     PlayType,
 )
@@ -25,7 +25,7 @@ def test_tongzi_bonus_only_for_round_winning_play():
     Expected: Only Player B gets the bonus (200 points), Player A gets nothing.
     """
     config = ConfigFactory.create_standard_3deck_3player()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Player A plays K Tongzi (NOT round winning)
     k_tongzi_cards = [
@@ -78,7 +78,7 @@ def test_dizha_bonus_only_for_round_winning_play():
     Test that Dizha bonus is only awarded to round-winning play.
     """
     config = ConfigFactory.create_standard_3deck_3player()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Player A plays King Dizha (NOT round winning)
     k_dizha_cards = [
@@ -145,7 +145,7 @@ def test_multiple_tongzi_in_same_round():
     - Expected: Only B gets 200, A gets 0
     """
     config = ConfigFactory.create_standard_3deck_3player()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Player A plays K Tongzi (middle of round)
     k_tongzi = PatternRecognizer.analyze_cards([
@@ -195,7 +195,7 @@ def test_backward_compatibility_default_true():
     backward compatibility.
     """
     config = ConfigFactory.create_standard_3deck_3player()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Call without is_round_winning_play parameter (should default to True)
     tongzi = PatternRecognizer.analyze_cards([
@@ -221,7 +221,7 @@ def test_backward_compatibility_default_true():
 def test_all_tongzi_ranks():
     """Test all Tongzi ranks get correct bonuses when winning."""
     config = ConfigFactory.create_standard_3deck_3player()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # K Tongzi = 100
     k_tongzi = PatternRecognizer.analyze_cards([
@@ -273,7 +273,7 @@ def test_non_special_patterns_not_affected():
     is_round_winning_play parameter.
     """
     config = ConfigFactory.create_standard_3deck_3player()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Regular bomb should not create special bonus events
     bomb = PatternRecognizer.analyze_cards([

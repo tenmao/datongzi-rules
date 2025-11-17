@@ -8,9 +8,8 @@ from datongzi_rules import (
     Deck,
     PatternRecognizer,
     PlayGenerator,
-    HandEvaluator,
     ConfigFactory,
-    ScoringEngine,
+    ScoreComputation,
 )
 
 
@@ -69,47 +68,21 @@ def benchmark_play_generation():
     
     for size, name in test_hands:
         hand = deck.cards[:size]
-        
+
         start_time = time.time()
         iterations = 100
-        
+
         for _ in range(iterations):
-            PlayGenerator.generate_all_plays(hand)
-        
+            # Use max_combinations=2000 for benchmark tests
+            # (We're testing performance, not production safety)
+            PlayGenerator.generate_all_plays(hand, max_combinations=2000)
+
         elapsed = time.time() - start_time
         avg_time = (elapsed / iterations) * 1000  # ms
-        
+
         print(f"{name:15s} ({size:2d} cards): {avg_time:.2f} ms/op")
-    
+
     print("✓ Play generation benchmark complete")
-
-
-def benchmark_hand_evaluation():
-    """Benchmark hand evaluation performance."""
-    print("\n" + "=" * 60)
-    print("Hand Evaluation Benchmark")
-    print("=" * 60)
-    
-    deck = Deck.create_standard_deck(num_decks=3)
-    deck.shuffle()
-    
-    test_sizes = [10, 20, 30, 41]
-    iterations = 1000
-    
-    for size in test_sizes:
-        hand = deck.cards[:size]
-        
-        start_time = time.time()
-        
-        for _ in range(iterations):
-            HandEvaluator.evaluate_hand(hand)
-        
-        elapsed = time.time() - start_time
-        avg_time = (elapsed / iterations) * 1000  # ms
-        
-        print(f"Hand size {size:2d}: {avg_time:.4f} ms/op ({iterations/elapsed:.0f} ops/sec)")
-    
-    print("✓ Hand evaluation benchmark complete")
 
 
 def benchmark_full_game_setup():
@@ -137,7 +110,7 @@ def benchmark_full_game_setup():
             hands.append(hand)
         
         # Create scoring engine
-        engine = ScoringEngine(config)
+        engine = ScoreComputation(config)
     
     elapsed = time.time() - start_time
     avg_time = (elapsed / iterations) * 1000  # ms
@@ -167,7 +140,7 @@ def benchmark_scoring():
     start_time = time.time()
     
     for i in range(iterations):
-        engine = ScoringEngine(config)
+        engine = ScoreComputation(config)
         engine.create_round_win_event("player1", round_cards, round_number=i)
     
     elapsed = time.time() - start_time
@@ -179,7 +152,7 @@ def benchmark_scoring():
     start_time = time.time()
     
     for _ in range(iterations):
-        engine = ScoringEngine(config)
+        engine = ScoreComputation(config)
         engine.create_finish_bonus_events(["player1", "player2", "player3"])
     
     elapsed = time.time() - start_time
@@ -198,7 +171,6 @@ def test_run_all_benchmarks():
     
     benchmark_pattern_recognition()
     benchmark_play_generation()
-    benchmark_hand_evaluation()
     benchmark_full_game_setup()
     benchmark_scoring()
     

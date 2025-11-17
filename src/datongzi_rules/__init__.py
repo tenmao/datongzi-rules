@@ -9,8 +9,12 @@ from .patterns import (
     PlayType,
     PlayValidator,
 )
-from .scoring import BonusType, ScoringEvent, ScoringEngine
-from .ai_helpers import PlayGenerator, HandEvaluator, HandAnalyzer, PatternSuggester
+from .scoring import BonusType, ScoringEvent, ScoreComputation
+from .ai_helpers import (
+    PlayGenerator,
+    HandPatternAnalyzer,
+    HandPatterns,
+)
 from .variants import ConfigFactory, VariantValidator
 
 __version__ = "0.1.0"
@@ -32,12 +36,11 @@ __all__ = [
     # Scoring
     "BonusType",
     "ScoringEvent",
-    "ScoringEngine",
+    "ScoreComputation",
     # AI Helpers
     "PlayGenerator",
-    "HandEvaluator",
-    "HandAnalyzer",
-    "PatternSuggester",
+    "HandPatternAnalyzer",
+    "HandPatterns",
     # Variants
     "ConfigFactory",
     "VariantValidator",

@@ -5,9 +5,9 @@ from datongzi_rules import (
     ConfigFactory,
     PatternRecognizer,
     PlayValidator,
-    ScoringEngine,
+    ScoreComputation,
     PlayGenerator,
-    HandEvaluator,
+    HandPatternAnalyzer,
     PlayType,
 )
 
@@ -99,14 +99,12 @@ def test_ai_helper_integration():
         pattern = PatternRecognizer.analyze_cards(play)
         assert pattern is not None
     
-    # Evaluate hand strength
-    strength = HandEvaluator.evaluate_hand(hand)
-    assert strength > 0
-    
-    # Suggest best play
-    best_play = HandEvaluator.suggest_best_play(hand)
-    assert best_play is not None
-    assert len(best_play) > 0
+    # Analyze hand patterns
+    patterns = HandPatternAnalyzer.analyze_patterns(hand)
+    assert patterns is not None
+
+    # Should be able to generate some plays
+    assert len(all_plays) > 0
     
     print("✓ AI helper integration test passed")
 
@@ -116,7 +114,7 @@ def test_scoring_flow():
     from datongzi_rules import Card, Rank, Suit
     
     config = ConfigFactory.create_standard_3deck_3player()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
     
     # Create round cards with scoring cards
     round_cards = [

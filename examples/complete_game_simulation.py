@@ -5,9 +5,9 @@ from datongzi_rules import (
     ConfigFactory,
     PatternRecognizer,
     PlayValidator,
-    ScoringEngine,
+    ScoreComputation,
     PlayGenerator,
-    HandEvaluator,
+    HandPatternAnalyzer,
 )
 
 
@@ -53,16 +53,12 @@ def simulate_complete_game():
     # 4. 分析手牌
     print("4. 分析各玩家手牌")
     for player_id, hand in player_hands.items():
-        strength = HandEvaluator.evaluate_hand(hand)
-        all_plays = PlayGenerator.generate_all_plays(hand)
-        bombs = [p for p in all_plays if len(p) >= 4 and 
-                 PatternRecognizer.analyze_cards(p) and
-                 PatternRecognizer.analyze_cards(p).play_type.value >= 8]
-        
+        patterns = HandPatternAnalyzer.analyze_patterns(hand)
+        play_count = PlayGenerator.count_all_plays(hand)
+
         print(f"   - {player_id}:")
-        print(f"     * 手牌强度: {strength:.2f}")
-        print(f"     * 可能出牌数: {len(all_plays)}")
-        print(f"     * 炸弹/特殊牌: {len(bombs)}")
+        print(f"     * 可能出牌数: {play_count}")
+        print(f"     * 炸弹: {len(patterns.bombs)}, 筒子: {len(patterns.tongzi)}, 地炸: {len(patterns.dizha)}")
     print()
     
     # 5. 模拟一轮出牌
@@ -73,35 +69,29 @@ def simulate_complete_game():
         print(f"\n   轮到 {player_id}:")
         
         if current_pattern is None:
-            # 首家出牌
-            all_plays = PlayGenerator.generate_all_plays(hand)
-            # 选择最小的牌出（保守策略）
-            smallest_play = min(all_plays, key=len)
-            pattern = PatternRecognizer.analyze_cards(smallest_play)
-            
-            print(f"     - 首家出牌: {len(smallest_play)} 张")
+            # 首家出牌 - 简单策略：出最小的单张
+            smallest_card = min(hand, key=lambda c: c.rank.value)
+            play = [smallest_card]
+            pattern = PatternRecognizer.analyze_cards(play)
+
+            print(f"     - 首家出牌: {len(play)} 张")
             print(f"     - 牌型: {pattern.play_type.name}")
-            
+
             current_pattern = pattern
         else:
-            # 跟牌
-            valid_responses = PlayGenerator.generate_valid_responses(
+            # 跟牌 - 使用新的高效API
+            valid_responses = PlayGenerator.generate_beating_plays_with_same_type_or_trump(
                 hand, current_pattern
             )
             
             if valid_responses:
-                # 选择最优响应
-                best_response = HandEvaluator.suggest_best_play(
-                    hand, current_pattern
-                )
-                
-                if best_response:
-                    pattern = PatternRecognizer.analyze_cards(best_response)
-                    print(f"     - 跟牌: {len(best_response)} 张")
-                    print(f"     - 牌型: {pattern.play_type.name}")
-                    current_pattern = pattern
-                else:
-                    print("     - 过牌（无法跟）")
+                # 选择第一个有效响应（简单策略）
+                best_response = valid_responses[0]
+
+                pattern = PatternRecognizer.analyze_cards(best_response)
+                print(f"     - 跟牌: {len(best_response)} 张")
+                print(f"     - 牌型: {pattern.play_type.name}")
+                current_pattern = pattern
             else:
                 print("     - 过牌（无法跟）")
     
@@ -109,7 +99,7 @@ def simulate_complete_game():
     
     # 6. 计分示例
     print("6. 计分示例")
-    scoring_engine = ScoringEngine(config)
+    scoring_engine = ScoreComputation(config)
     
     # 假设 player1 获胜这一轮
     round_cards = []

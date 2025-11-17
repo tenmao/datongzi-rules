@@ -5,9 +5,9 @@ from datongzi_rules import (
     ConfigFactory,
     PatternRecognizer,
     PlayValidator,
-    ScoringEngine,
+    ScoreComputation,
     PlayGenerator,
-    HandEvaluator,
+    HandPatternAnalyzer,
 )
 
 
@@ -25,27 +25,25 @@ class SimpleAIPlayer:
     def decide_play(self, current_pattern=None):
         """Decide what to play based on current situation."""
         if current_pattern is None:
-            # Starting round - play weakest cards
-            best_play = HandEvaluator.suggest_best_play(self.hand)
+            # Starting round - play weakest single card
+            best_play = [min(self.hand, key=lambda c: c.rank.value)]
         else:
-            # Must beat current pattern
-            valid_plays = PlayGenerator.generate_valid_responses(
+            # Must beat current pattern - use new efficient API
+            valid_plays = PlayGenerator.generate_beating_plays_with_same_type_or_trump(
                 self.hand, current_pattern
             )
-            
+
             if not valid_plays:
                 return None  # Pass
-            
-            # Choose best play based on strategy
-            best_play = HandEvaluator.suggest_best_play(
-                self.hand, current_pattern
-            )
-        
+
+            # Choose first valid play (simple strategy)
+            best_play = valid_plays[0]
+
         if best_play:
             # Remove played cards from hand
             for card in best_play:
                 self.hand.remove(card)
-        
+
         return best_play
 
 
@@ -79,9 +77,9 @@ def simulate_ai_game():
         hand = deck.deal_cards(config.cards_per_player)
         player.receive_cards(hand)
         
-        # Show initial hand strength
-        strength = HandEvaluator.evaluate_hand(player.hand)
-        print(f"  {player.player_id}: {len(player.hand)} 张牌, 强度 {strength:.2f}")
+        # Show initial hand analysis
+        patterns = HandPatternAnalyzer.analyze_patterns(player.hand)
+        print(f"  {player.player_id}: {len(player.hand)} 张牌, 炸弹 {len(patterns.bombs)}, 筒子 {len(patterns.tongzi)}")
     print()
     
     # Simulate several rounds
@@ -89,7 +87,7 @@ def simulate_ai_game():
     print("游戏开始！")
     print("=" * 60)
     
-    scoring_engine = ScoringEngine(config)
+    scoring_engine = ScoreComputation(config)
     
     for round_num in range(1, 4):
         print(f"\n第 {round_num} 轮:")

@@ -7,7 +7,7 @@ from datongzi_rules import (
     GameConfig,
     BonusType,
     ScoringEvent,
-    ScoringEngine,
+    ScoreComputation,
     PlayType,
     PlayPattern,
     PatternRecognizer,
@@ -17,7 +17,7 @@ from datongzi_rules import (
 def test_calculate_round_base_score():
     """Test basic round score calculation from scoring cards."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Cards with different scores
     cards = [
@@ -35,7 +35,7 @@ def test_calculate_round_base_score():
 def test_calculate_round_base_score_no_scoring_cards():
     """Test round score with no scoring cards."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     cards = [
         Card(Suit.SPADES, Rank.SIX),
@@ -51,7 +51,7 @@ def test_calculate_round_base_score_no_scoring_cards():
 def test_create_round_win_event():
     """Test creating round win event."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     cards = [
         Card(Suit.SPADES, Rank.FIVE),
@@ -72,7 +72,7 @@ def test_create_round_win_event():
 def test_create_round_win_event_no_points():
     """Test round win event returns None when no scoring cards."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     cards = [Card(Suit.SPADES, Rank.SIX)]
 
@@ -85,7 +85,7 @@ def test_create_round_win_event_no_points():
 def test_create_tongzi_bonus_k():
     """Test K Tongzi bonus event."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Create K Tongzi pattern (3 cards, same suit, same rank)
     cards = [
@@ -108,7 +108,7 @@ def test_create_tongzi_bonus_k():
 def test_create_tongzi_bonus_a():
     """Test A Tongzi bonus event."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     cards = [
         Card(Suit.HEARTS, Rank.ACE),
@@ -128,7 +128,7 @@ def test_create_tongzi_bonus_a():
 def test_create_tongzi_bonus_two():
     """Test 2 Tongzi bonus event."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     cards = [
         Card(Suit.CLUBS, Rank.TWO),
@@ -148,7 +148,7 @@ def test_create_tongzi_bonus_two():
 def test_create_dizha_bonus():
     """Test Dizha bonus event."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Create Dizha pattern (8 cards, 2 of each suit for same rank)
     cards = [
@@ -175,7 +175,7 @@ def test_create_dizha_bonus():
 def test_create_finish_bonus_events():
     """Test finish position bonus events."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     player_ids = ["player1", "player2", "player3"]
 
@@ -204,7 +204,7 @@ def test_create_finish_bonus_events():
 def test_calculate_total_score_for_player():
     """Test calculating total score from multiple events."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Create some events manually
     engine.scoring_events = [
@@ -225,7 +225,7 @@ def test_calculate_total_score_for_player():
 def test_validate_scores_correct():
     """Test score validation with correct scores."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     engine.scoring_events = [
         ScoringEvent("player1", BonusType.ROUND_WIN, 15, "Round 1"),
@@ -241,7 +241,7 @@ def test_validate_scores_correct():
 def test_validate_scores_incorrect():
     """Test score validation with incorrect scores."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     engine.scoring_events = [
         ScoringEvent("player1", BonusType.ROUND_WIN, 15, "Round 1"),
@@ -257,7 +257,7 @@ def test_validate_scores_incorrect():
 def test_get_game_summary():
     """Test generating comprehensive game summary."""
     config = GameConfig()
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Simulate a game with various events
     engine.scoring_events = [
@@ -313,7 +313,7 @@ def test_custom_config_bonuses():
         dizha_bonus=500,
         finish_bonus=[200, -50, -150],
     )
-    engine = ScoringEngine(config)
+    engine = ScoreComputation(config)
 
     # Test K Tongzi with custom bonus (3 cards, same suit)
     cards = [

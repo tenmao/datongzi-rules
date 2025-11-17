@@ -37,16 +37,16 @@ class ScoringEvent:
     cards_involved: list[str] = field(default_factory=list)
 
 
-class ScoringEngine:
+class ScoreComputation:
     """
     Handles all scoring calculations and bonus awards.
-    
+
     Note: This is a pure calculation engine. It does NOT modify player state.
     Server layer is responsible for applying scores to players.
     """
 
     def __init__(self, config: GameConfig):
-        """Initialize scoring engine with game configuration."""
+        """Initialize score computation with game configuration."""
         self.config = config
         self.scoring_events: list[ScoringEvent] = []
 

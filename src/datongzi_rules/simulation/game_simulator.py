@@ -9,7 +9,7 @@ import random
 from ..models.card import Card, Deck
 from ..models.config import GameConfig
 from ..patterns.recognizer import PatternRecognizer, PlayPattern, PlayValidator
-from ..scoring.engine import ScoringEngine
+from ..scoring import ScoreComputation
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class GameState:
     player_ids: list[str]
     player_hands: dict[str, list[Card]]
     aside_cards: list[Card]
-    scoring_engine: ScoringEngine
+    scoring_engine: ScoreComputation
 
     current_round: int = 1
     current_player_index: int = 0
@@ -133,7 +133,7 @@ class GameSimulator:
             player_ids=player_ids,
             player_hands=player_hands,
             aside_cards=aside_cards,
-            scoring_engine=ScoringEngine(config),
+            scoring_engine=ScoreComputation(config),
             current_player_index=random.randint(0, len(player_ids) - 1)
         )
 

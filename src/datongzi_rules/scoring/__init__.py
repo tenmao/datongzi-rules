@@ -1,5 +1,5 @@
 """Scoring system for Da Tong Zi game."""
 
-from .engine import BonusType, ScoringEvent, ScoringEngine
+from .computation import BonusType, ScoringEvent, ScoreComputation
 
-__all__ = ["BonusType", "ScoringEvent", "ScoringEngine"]
+__all__ = ["BonusType", "ScoringEvent", "ScoreComputation"]
