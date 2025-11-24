@@ -113,6 +113,7 @@ jobs:
           files: rust/cobertura.xml
           flags: rust
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   security-audit:
     name: Security Audit

@@ -44,9 +44,10 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: python/htmlcov/coverage.xml
+          files: python/coverage.xml
           flags: python
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   lint:
     name: Lint and Format Check
