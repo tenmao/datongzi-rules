@@ -165,9 +165,19 @@ impl Deck {
         for _ in 0..num_decks {
             for suit in [Suit::Diamonds, Suit::Clubs, Suit::Hearts, Suit::Spades] {
                 for rank in [
-                    Rank::Three, Rank::Four, Rank::Five, Rank::Six,
-                    Rank::Seven, Rank::Eight, Rank::Nine, Rank::Ten,
-                    Rank::Jack, Rank::Queen, Rank::King, Rank::Ace, Rank::Two,
+                    Rank::Three,
+                    Rank::Four,
+                    Rank::Five,
+                    Rank::Six,
+                    Rank::Seven,
+                    Rank::Eight,
+                    Rank::Nine,
+                    Rank::Ten,
+                    Rank::Jack,
+                    Rank::Queen,
+                    Rank::King,
+                    Rank::Ace,
+                    Rank::Two,
                 ] {
                     if !excluded_ranks.contains(&rank) {
                         cards.push(Card::new(suit, rank));

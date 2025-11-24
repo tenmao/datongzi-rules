@@ -25,16 +25,16 @@
 #![allow(clippy::module_inception)]
 #![allow(clippy::module_name_repetitions)]
 
+pub mod ai_helpers;
+pub mod error;
 pub mod models;
 pub mod patterns;
 pub mod scoring;
-pub mod ai_helpers;
 pub mod variants;
-pub mod error;
 
 // Re-export commonly used types
-pub use models::{Card, Rank, Suit, Deck, GameConfig};
 pub use error::{DatongziError, Result};
+pub use models::{Card, Deck, GameConfig, Rank, Suit};
 
 /// Library version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -10,5 +10,5 @@
 pub mod card;
 pub mod config;
 
-pub use card::{Card, Rank, Suit, Deck};
+pub use card::{Card, Deck, Rank, Suit};
 pub use config::GameConfig;

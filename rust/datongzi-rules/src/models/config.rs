@@ -72,18 +72,20 @@ impl GameConfig {
     /// Returns an error if the configuration is invalid
     pub fn validate(&self) -> crate::Result<()> {
         let total_cards = usize::from(self.num_decks) * 52;
-        let required_cards = self.cards_per_player * usize::from(self.num_players) + self.cards_dealt_aside;
+        let required_cards =
+            self.cards_per_player * usize::from(self.num_players) + self.cards_dealt_aside;
 
         if required_cards > total_cards {
-            return Err(crate::DatongziError::ConfigError(
-                format!("Not enough cards: need {required_cards}, have {total_cards}")
-            ));
+            return Err(crate::DatongziError::ConfigError(format!(
+                "Not enough cards: need {required_cards}, have {total_cards}"
+            )));
         }
 
         if !(2..=4).contains(&self.num_players) {
-            return Err(crate::DatongziError::ConfigError(
-                format!("Invalid number of players: {}", self.num_players)
-            ));
+            return Err(crate::DatongziError::ConfigError(format!(
+                "Invalid number of players: {}",
+                self.num_players
+            )));
         }
 
         Ok(())
