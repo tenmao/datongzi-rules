@@ -33,9 +33,10 @@ pub mod scoring;
 pub mod variants;
 
 // Re-export commonly used types
+pub use ai_helpers::{HandPatternAnalyzer, HandPatterns, PlayGenerator};
 pub use error::{DatongziError, Result};
 pub use models::{Card, Deck, GameConfig, Rank, Suit};
-pub use patterns::{PlayPattern, PlayType};
+pub use patterns::{PatternRecognizer, PlayPattern, PlayType, PlayValidator};
 pub use scoring::{BonusType, GameSummary, ScoreComputation, ScoringEvent};
 
 /// Library version
