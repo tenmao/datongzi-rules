@@ -11,4 +11,4 @@ mod pattern;
 mod recognizer;
 
 pub use pattern::{PlayPattern, PlayType};
-pub use recognizer::PatternRecognizer;
+pub use recognizer::{PatternRecognizer, PlayValidator};
