@@ -1,3 +1,8 @@
 //! Scoring system.
-
-// Placeholder - will be implemented in Phase 4
+//!
+//! This module will contain:
+//! - Score calculation for rounds
+//! - Bonus scoring (Tongzi, Dizha, finish positions)
+//! - Scoring events and history
+//!
+//! **Status**: Phase 4 - Not yet implemented

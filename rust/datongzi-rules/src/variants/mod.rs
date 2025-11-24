@@ -1,3 +1,8 @@
 //! Game rule variants.
-
-// Placeholder - will be implemented in Phase 6
+//!
+//! This module will contain:
+//! - Configuration factory for different rule variants
+//! - Variant validation
+//! - Preset configurations (standard, simplified, etc.)
+//!
+//! **Status**: Phase 6 - Not yet implemented

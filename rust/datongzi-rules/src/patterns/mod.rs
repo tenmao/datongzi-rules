@@ -1,3 +1,8 @@
 //! Pattern recognition and validation.
-
-// Placeholder - will be implemented in Phase 3
+//!
+//! This module will contain:
+//! - Pattern recognition for different play types
+//! - Play validation logic
+//! - Pattern comparison rules
+//!
+//! **Status**: Phase 3 - Not yet implemented

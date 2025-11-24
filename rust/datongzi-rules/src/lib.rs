@@ -13,19 +13,16 @@
 //!
 //! ## 模块结构
 //!
-
-#![warn(missing_docs)]
-#![warn(clippy::all)]
-#![allow(clippy::module_inception)]
 //! - [`models`]: 核心数据模型（Card, Rank, Suit, Deck, GameConfig）
 //! - [`patterns`]: 牌型识别和验证
 //! - [`scoring`]: 计分系统
 //! - [`ai_helpers`]: AI 辅助工具
 //! - [`variants`]: 规则变体配置
+//! - [`error`]: 错误类型定义
 
 #![warn(missing_docs)]
 #![warn(clippy::all)]
-#![warn(clippy::pedantic)]
+#![allow(clippy::module_inception)]
 #![allow(clippy::module_name_repetitions)]
 
 pub mod models;
