@@ -38,6 +38,7 @@ pub use error::{DatongziError, Result};
 pub use models::{Card, Deck, GameConfig, Rank, Suit};
 pub use patterns::{PatternRecognizer, PlayPattern, PlayType, PlayValidator};
 pub use scoring::{BonusType, GameSummary, ScoreComputation, ScoringEvent};
+pub use variants::{ConfigFactory, VariantValidator};
 
 /// Library version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

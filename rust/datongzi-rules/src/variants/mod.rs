@@ -1,8 +1,9 @@
-//! Game rule variants.
+//! Game rule variants and configuration factory.
 //!
-//! This module will contain:
-//! - Configuration factory for different rule variants
-//! - Variant validation
-//! - Preset configurations (standard, simplified, etc.)
-//!
-//! **Status**: Phase 6 - Not yet implemented
+//! This module provides pre-configured game setups and validation tools:
+//! - `ConfigFactory`: Factory for creating common game configurations
+//! - `VariantValidator`: Validator for checking configuration playability
+
+mod config_factory;
+
+pub use config_factory::{ConfigFactory, VariantValidator};
