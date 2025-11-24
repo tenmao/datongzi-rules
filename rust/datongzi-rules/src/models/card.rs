@@ -97,6 +97,18 @@ impl Card {
         Self { suit, rank }
     }
 
+    /// Returns the suit of this card
+    #[must_use]
+    pub const fn suit(&self) -> Suit {
+        self.suit
+    }
+
+    /// Returns the rank of this card
+    #[must_use]
+    pub const fn rank(&self) -> Rank {
+        self.rank
+    }
+
     /// Returns true if this is a scoring card (5, 10, or K)
     #[must_use]
     pub const fn is_scoring_card(&self) -> bool {
@@ -140,9 +152,14 @@ pub struct Deck {
 }
 
 impl Deck {
-    /// Creates a standard deck with the specified number of decks
+    /// Creates a new deck with the specified number of decks and excluded ranks
+    ///
+    /// # Arguments
+    ///
+    /// * `num_decks` - Number of standard 52-card decks to include
+    /// * `excluded_ranks` - Ranks to exclude from the deck (e.g., &[Rank::Three, Rank::Four])
     #[must_use]
-    pub fn create_standard_deck(num_decks: u8) -> Self {
+    pub fn new(num_decks: u8, excluded_ranks: &[Rank]) -> Self {
         let mut cards = Vec::with_capacity(usize::from(num_decks) * 52);
 
         for _ in 0..num_decks {
@@ -152,12 +169,20 @@ impl Deck {
                     Rank::Seven, Rank::Eight, Rank::Nine, Rank::Ten,
                     Rank::Jack, Rank::Queen, Rank::King, Rank::Ace, Rank::Two,
                 ] {
-                    cards.push(Card::new(suit, rank));
+                    if !excluded_ranks.contains(&rank) {
+                        cards.push(Card::new(suit, rank));
+                    }
                 }
             }
         }
 
         Self { cards }
+    }
+
+    /// Creates a standard deck with the specified number of decks
+    #[must_use]
+    pub fn create_standard_deck(num_decks: u8) -> Self {
+        Self::new(num_decks, &[])
     }
 
     /// Shuffles the deck
@@ -179,10 +204,26 @@ impl Deck {
         self.cards.split_off(self.cards.len() - count)
     }
 
+    /// Deals the specified number of cards from the deck (alias for deal_cards)
+    ///
+    /// # Panics
+    ///
+    /// Panics if there are not enough cards in the deck
+    #[must_use]
+    pub fn deal(&mut self, count: usize) -> Vec<Card> {
+        self.deal_cards(count)
+    }
+
     /// Returns the number of cards remaining in the deck
     #[must_use]
     pub fn len(&self) -> usize {
         self.cards.len()
+    }
+
+    /// Returns the number of cards remaining in the deck (alias for len)
+    #[must_use]
+    pub fn remaining(&self) -> usize {
+        self.len()
     }
 
     /// Returns true if the deck is empty

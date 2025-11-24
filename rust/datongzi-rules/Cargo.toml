@@ -24,10 +24,6 @@ proptest = { workspace = true }
 default = []
 serde = ["dep:serde", "dep:serde_json"]
 
-[[bench]]
-name = "benchmarks"
-harness = false
-
 [lib]
 name = "datongzi_rules"
 path = "src/lib.rs"

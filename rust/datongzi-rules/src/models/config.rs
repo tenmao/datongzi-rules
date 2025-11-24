@@ -25,6 +25,46 @@ impl Default for GameConfig {
 }
 
 impl GameConfig {
+    /// Creates a new game configuration
+    #[must_use]
+    pub const fn new(
+        num_decks: u8,
+        num_players: u8,
+        cards_per_player: usize,
+        cards_dealt_aside: usize,
+    ) -> Self {
+        Self {
+            num_decks,
+            num_players,
+            cards_per_player,
+            cards_dealt_aside,
+        }
+    }
+
+    /// Returns the number of decks
+    #[must_use]
+    pub const fn num_decks(&self) -> u8 {
+        self.num_decks
+    }
+
+    /// Returns the number of players
+    #[must_use]
+    pub const fn num_players(&self) -> u8 {
+        self.num_players
+    }
+
+    /// Returns the number of cards per player
+    #[must_use]
+    pub const fn cards_per_player(&self) -> usize {
+        self.cards_per_player
+    }
+
+    /// Returns the number of cards dealt aside
+    #[must_use]
+    pub const fn cards_dealt_aside(&self) -> usize {
+        self.cards_dealt_aside
+    }
+
     /// Validates the configuration
     ///
     /// # Errors
