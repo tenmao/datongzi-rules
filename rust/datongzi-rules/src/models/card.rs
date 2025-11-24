@@ -16,6 +16,14 @@ pub enum Suit {
     Spades = 4,
 }
 
+impl Suit {
+    /// Returns the numeric value of the suit (1-4)
+    #[must_use]
+    pub const fn value(self) -> u8 {
+        self as u8
+    }
+}
+
 impl fmt::Display for Suit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let symbol = match self {
@@ -58,6 +66,14 @@ pub enum Rank {
     Ace = 14,
     /// Two - highest rank
     Two = 15,
+}
+
+impl Rank {
+    /// Returns the numeric value of the rank (3-15)
+    #[must_use]
+    pub const fn value(self) -> u8 {
+        self as u8
+    }
 }
 
 impl fmt::Display for Rank {

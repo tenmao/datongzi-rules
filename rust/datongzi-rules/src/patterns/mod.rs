@@ -8,5 +8,7 @@
 //! **Status**: Phase 2 - In progress
 
 mod pattern;
+mod recognizer;
 
 pub use pattern::{PlayPattern, PlayType};
+pub use recognizer::PatternRecognizer;
