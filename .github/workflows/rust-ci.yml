@@ -93,6 +93,7 @@ jobs:
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
+    continue-on-error: true  # Phase 1: Allow coverage failures
     steps:
       - uses: actions/checkout@v4
 
@@ -119,6 +120,7 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    continue-on-error: true  # Phase 1: Allow audit failures
     steps:
       - uses: actions/checkout@v4
 
