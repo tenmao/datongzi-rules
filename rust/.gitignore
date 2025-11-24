@@ -1,0 +1,28 @@
+# Rust build artifacts
+target/
+Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Profiling
+flamegraph.svg
+perf.data
+perf.data.old
+
+# Coverage
+*.profraw
+*.profdata
+tarpaulin-report.html
+cobertura.xml
+
+# Benchmark results
+criterion/

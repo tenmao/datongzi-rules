@@ -1,0 +1,33 @@
+[package]
+name = "datongzi-rules"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Zero-dependency Da Tong Zi game rules engine"
+keywords = ["datongzi", "card-game", "rules-engine", "game-rules"]
+categories = ["games"]
+
+[dependencies]
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+thiserror = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+proptest = { workspace = true }
+
+[features]
+default = []
+serde = ["dep:serde", "dep:serde_json"]
+
+[[bench]]
+name = "benchmarks"
+harness = false
+
+[lib]
+name = "datongzi_rules"
+path = "src/lib.rs"

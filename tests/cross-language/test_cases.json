@@ -1,0 +1,127 @@
+{
+  "version": "1.0",
+  "description": "Cross-language test cases for Python and Rust implementations",
+  "test_suites": {
+    "card_basics": [
+      {
+        "name": "card_creation",
+        "description": "Test card creation and properties",
+        "tests": [
+          {
+            "id": "card_001",
+            "input": {"suit": "SPADES", "rank": "ACE"},
+            "expected": {
+              "is_scoring_card": false,
+              "score_value": 0
+            }
+          },
+          {
+            "id": "card_002",
+            "input": {"suit": "HEARTS", "rank": "FIVE"},
+            "expected": {
+              "is_scoring_card": true,
+              "score_value": 5
+            }
+          },
+          {
+            "id": "card_003",
+            "input": {"suit": "CLUBS", "rank": "TEN"},
+            "expected": {
+              "is_scoring_card": true,
+              "score_value": 10
+            }
+          },
+          {
+            "id": "card_004",
+            "input": {"suit": "DIAMONDS", "rank": "KING"},
+            "expected": {
+              "is_scoring_card": true,
+              "score_value": 10
+            }
+          }
+        ]
+      },
+      {
+        "name": "card_ordering",
+        "description": "Test card comparison",
+        "tests": [
+          {
+            "id": "order_001",
+            "input": {
+              "card1": {"suit": "SPADES", "rank": "TWO"},
+              "card2": {"suit": "SPADES", "rank": "ACE"}
+            },
+            "expected": {
+              "card1_greater": true
+            }
+          },
+          {
+            "id": "order_002",
+            "input": {
+              "card1": {"suit": "SPADES", "rank": "ACE"},
+              "card2": {"suit": "HEARTS", "rank": "ACE"}
+            },
+            "expected": {
+              "card1_greater": true
+            }
+          }
+        ]
+      }
+    ],
+    "deck_operations": [
+      {
+        "name": "deck_creation",
+        "description": "Test deck creation",
+        "tests": [
+          {
+            "id": "deck_001",
+            "input": {"num_decks": 1},
+            "expected": {"card_count": 52}
+          },
+          {
+            "id": "deck_002",
+            "input": {"num_decks": 3},
+            "expected": {"card_count": 156}
+          }
+        ]
+      }
+    ],
+    "config_validation": [
+      {
+        "name": "valid_configs",
+        "description": "Test valid game configurations",
+        "tests": [
+          {
+            "id": "config_001",
+            "input": {
+              "num_decks": 3,
+              "num_players": 3,
+              "cards_per_player": 41,
+              "cards_dealt_aside": 9
+            },
+            "expected": {"is_valid": true}
+          }
+        ]
+      },
+      {
+        "name": "invalid_configs",
+        "description": "Test invalid game configurations",
+        "tests": [
+          {
+            "id": "config_invalid_001",
+            "input": {
+              "num_decks": 1,
+              "num_players": 3,
+              "cards_per_player": 41,
+              "cards_dealt_aside": 9
+            },
+            "expected": {
+              "is_valid": false,
+              "error_contains": "Not enough cards"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
