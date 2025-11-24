@@ -13,6 +13,10 @@
 //!
 //! ## 模块结构
 //!
+
+#![warn(missing_docs)]
+#![warn(clippy::all)]
+#![allow(clippy::module_inception)]
 //! - [`models`]: 核心数据模型（Card, Rank, Suit, Deck, GameConfig）
 //! - [`patterns`]: 牌型识别和验证
 //! - [`scoring`]: 计分系统
