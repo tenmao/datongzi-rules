@@ -1,8 +1,8 @@
 """Card model and related enums for Da Tong Zi game - Zero Dependency Version."""
 
+import logging
 from dataclasses import dataclass, field
 from enum import IntEnum
-import logging
 
 logger = logging.getLogger(__name__)
 

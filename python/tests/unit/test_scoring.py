@@ -1,16 +1,15 @@
 """Unit tests for scoring engine."""
 
 from datongzi_rules import (
-    Card,
-    Rank,
-    Suit,
-    GameConfig,
     BonusType,
-    ScoringEvent,
-    ScoreComputation,
-    PlayType,
-    PlayPattern,
+    Card,
+    GameConfig,
     PatternRecognizer,
+    PlayType,
+    Rank,
+    ScoreComputation,
+    ScoringEvent,
+    Suit,
 )
 
 
@@ -261,15 +260,9 @@ def test_get_game_summary():
 
     # Simulate a game with various events
     engine.scoring_events = [
-        ScoringEvent(
-            "player1", BonusType.ROUND_WIN, 15, "Round 1 win", round_number=1
-        ),
-        ScoringEvent(
-            "player1", BonusType.K_TONGZI, 100, "K Tongzi", round_number=1
-        ),
-        ScoringEvent(
-            "player2", BonusType.ROUND_WIN, 25, "Round 2 win", round_number=2
-        ),
+        ScoringEvent("player1", BonusType.ROUND_WIN, 15, "Round 1 win", round_number=1),
+        ScoringEvent("player1", BonusType.K_TONGZI, 100, "K Tongzi", round_number=1),
+        ScoringEvent("player2", BonusType.ROUND_WIN, 25, "Round 2 win", round_number=2),
         ScoringEvent("player1", BonusType.FINISH_FIRST, 100, "First place"),
         ScoringEvent("player2", BonusType.FINISH_SECOND, -40, "Second place"),
         ScoringEvent("player3", BonusType.FINISH_THIRD, -60, "Third place"),

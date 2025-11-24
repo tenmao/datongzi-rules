@@ -30,7 +30,10 @@ class PlayFormationValidator:
         rank_counts = Counter(card.rank for card in hand)
 
         # Filter ranks that have at least 2 cards (can form pairs)
-        pair_ranks = sorted([rank for rank, count in rank_counts.items() if count >= 2], key=lambda r: r.value)
+        pair_ranks = sorted(
+            [rank for rank, count in rank_counts.items() if count >= 2],
+            key=lambda r: r.value,
+        )
 
         # Find consecutive sequences of required length
         for i in range(len(pair_ranks) - num_pairs + 1):
@@ -50,9 +53,7 @@ class PlayFormationValidator:
         return False
 
     @staticmethod
-    def can_form_airplane(
-        hand: list[Card], num_triples: int, min_rank: Any
-    ) -> bool:
+    def can_form_airplane(hand: list[Card], num_triples: int, min_rank: Any) -> bool:
         """Check if player can form N consecutive triples with highest rank higher than min_rank.
 
         Args:
@@ -66,7 +67,10 @@ class PlayFormationValidator:
         rank_counts = Counter(card.rank for card in hand)
 
         # Filter ranks that have at least 3 cards (can form triples)
-        triple_ranks = sorted([rank for rank, count in rank_counts.items() if count >= 3], key=lambda r: r.value)
+        triple_ranks = sorted(
+            [rank for rank, count in rank_counts.items() if count >= 3],
+            key=lambda r: r.value,
+        )
 
         # Find consecutive sequences of required length
         for i in range(len(triple_ranks) - num_triples + 1):
@@ -102,7 +106,10 @@ class PlayFormationValidator:
         rank_counts = Counter(card.rank for card in hand)
 
         # Filter ranks that have at least 3 cards (can form triples)
-        triple_ranks = sorted([rank for rank, count in rank_counts.items() if count >= 3], key=lambda r: r.value)
+        triple_ranks = sorted(
+            [rank for rank, count in rank_counts.items() if count >= 3],
+            key=lambda r: r.value,
+        )
 
         # Find consecutive sequences of required length
         for i in range(len(triple_ranks) - num_triples + 1):
@@ -152,7 +159,11 @@ class PlayFormationValidator:
         rank_counts = Counter(card.rank for card in hand)
 
         # Find triples with rank > min_rank
-        valid_triples = [rank for rank, count in rank_counts.items() if count >= 3 and rank.value > min_rank.value]
+        valid_triples = [
+            rank
+            for rank, count in rank_counts.items()
+            if count >= 3 and rank.value > min_rank.value
+        ]
 
         if not valid_triples:
             return False

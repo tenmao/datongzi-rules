@@ -1,10 +1,11 @@
 """Complete game flow simulator with rule validation and logging."""
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Callable
 import logging
 import random
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 from ..models.card import Card, Deck
 from ..models.config import GameConfig
@@ -50,7 +51,9 @@ class GameState:
 
     current_round: int = 1
     current_player_index: int = 0
-    current_round_plays: list[tuple[str, list[Card], PlayPattern]] = field(default_factory=list)
+    current_round_plays: list[tuple[str, list[Card], PlayPattern]] = field(
+        default_factory=list
+    )
     current_best_play: PlayPattern | None = None
     last_player_who_played: str | None = None
     consecutive_passes: int = 0
@@ -92,12 +95,7 @@ class GameSimulator:
     - Rule validation at every step
     """
 
-    def __init__(
-        self,
-        config: GameConfig,
-        player_ids: list[str],
-        verbose: bool = True
-    ):
+    def __init__(self, config: GameConfig, player_ids: list[str], verbose: bool = True):
         """
         Initialize game simulator.
 
@@ -134,20 +132,18 @@ class GameSimulator:
             player_hands=player_hands,
             aside_cards=aside_cards,
             scoring_engine=ScoreComputation(config),
-            current_player_index=random.randint(0, len(player_ids) - 1)
+            current_player_index=random.randint(0, len(player_ids) - 1),
         )
 
         self._log(f"Game initialized with {len(player_ids)} players")
         self._log(f"Starting player: {self.state.get_current_player()}")
         for player_id in player_ids:
-            self._log(
-                f"  {player_id}: {len(player_hands[player_id])} cards"
-            )
+            self._log(f"  {player_id}: {len(player_hands[player_id])} cards")
 
     def play_full_game(
         self,
-        play_decision_func: Callable[[GameState, str], list[Card] | None] | None = None
-    ) -> dict:
+        play_decision_func: Callable[[GameState, str], list[Card] | None] | None = None,
+    ) -> dict[str, Any]:
         """
         Play a complete game until only one player remains.
 
@@ -177,11 +173,7 @@ class GameSimulator:
 
             # Execute action
             action_number += 1
-            self._execute_player_action(
-                current_player,
-                cards_to_play,
-                action_number
-            )
+            self._execute_player_action(current_player, cards_to_play, action_number)
 
             # Check for round end
             if self._check_round_end():
@@ -198,10 +190,7 @@ class GameSimulator:
         return self._generate_game_report()
 
     def _execute_player_action(
-        self,
-        player_id: str,
-        cards_to_play: list[Card] | None,
-        action_number: int
+        self, player_id: str, cards_to_play: list[Card] | None, action_number: int
     ) -> None:
         """Execute a single player action and log it."""
         hand = self.state.player_hands[player_id]
@@ -216,7 +205,7 @@ class GameSimulator:
                 action=PlayerAction.SKIP_NO_CARDS,
                 reason="No cards left",
                 hand_size_before=0,
-                hand_size_after=0
+                hand_size_after=0,
             )
             self.state.round_logs.append(log_entry)
             self._log_action(log_entry)
@@ -233,7 +222,7 @@ class GameSimulator:
                 action=PlayerAction.PASS,
                 reason="Chose to pass",
                 hand_size_before=hand_size_before,
-                hand_size_after=hand_size_before
+                hand_size_after=hand_size_before,
             )
             self.state.round_logs.append(log_entry)
             self._log_action(log_entry)
@@ -242,9 +231,7 @@ class GameSimulator:
         # Validate play
         pattern = PatternRecognizer.analyze_cards(cards_to_play)
         if pattern is None:
-            raise ValueError(
-                f"Invalid pattern: {[str(c) for c in cards_to_play]}"
-            )
+            raise ValueError(f"Invalid pattern: {[str(c) for c in cards_to_play]}")
 
         if not PlayValidator.can_beat_play(cards_to_play, self.state.current_best_play):
             raise ValueError(
@@ -273,7 +260,7 @@ class GameSimulator:
             pattern=pattern,
             reason=f"Played {pattern.play_type.name}",
             hand_size_before=hand_size_before,
-            hand_size_after=len(hand)
+            hand_size_after=len(hand),
         )
         self.state.round_logs.append(log_entry)
         self._log_action(log_entry)
@@ -281,7 +268,9 @@ class GameSimulator:
         # Check if player finished
         if len(hand) == 0 and player_id not in self.state.finished_players:
             self.state.finished_players.append(player_id)
-            self._log(f"🎉 {player_id} finished! Position: {len(self.state.finished_players)}")
+            self._log(
+                f"🎉 {player_id} finished! Position: {len(self.state.finished_players)}"
+            )
 
     def _check_round_end(self) -> bool:
         """Check if current round has ended."""
@@ -322,9 +311,7 @@ class GameSimulator:
 
         # Award base score from round cards
         round_event = self.state.scoring_engine.create_round_win_event(
-            winner_id,
-            round_cards,
-            self.state.current_round
+            winner_id, round_cards, self.state.current_round
         )
         if round_event:
             self._log(f"  💰 Base score: +{round_event.points}")
@@ -335,7 +322,7 @@ class GameSimulator:
                 winner_id,
                 winning_pattern,
                 self.state.current_round,
-                is_round_winning_play=True
+                is_round_winning_play=True,
             )
             for event in special_events:
                 self._log(f"  🎁 {event.bonus_type.value}: +{event.points}")
@@ -355,7 +342,9 @@ class GameSimulator:
 
             # If winner finished, start from next active player
             if self.state.is_player_finished(self.state.last_player_who_played):
-                self.state.current_player_index = self._find_next_active_player(winner_idx)
+                self.state.current_player_index = self._find_next_active_player(
+                    winner_idx
+                )
             else:
                 self.state.current_player_index = winner_idx
 
@@ -393,16 +382,16 @@ class GameSimulator:
         # Final scores
         self._log("\nFinal Scores:")
         for player_id in self.state.player_ids:
-            score = self.state.scoring_engine.calculate_total_score_for_player(player_id)
+            score = self.state.scoring_engine.calculate_total_score_for_player(
+                player_id
+            )
             remaining = len(self.state.player_hands[player_id])
             self._log(f"  {player_id}: {score:+d} ({remaining} cards left)")
 
         self.state.game_over = True
 
     def _default_play_strategy(
-        self,
-        state: GameState,
-        player_id: str
+        self, state: GameState, player_id: str
     ) -> list[Card] | None:
         """
         Default play strategy: play smallest valid cards.
@@ -424,7 +413,7 @@ class GameSimulator:
                 continue
 
             for i in range(len(hand) - count + 1):
-                cards = hand[i:i+count]
+                cards = hand[i : i + count]
                 if PlayValidator.can_beat_play(cards, current_play):
                     return cards
 
@@ -461,9 +450,9 @@ class GameSimulator:
                 f"[{log_entry.hand_size_after} cards left]"
             )
 
-    def _generate_game_report(self) -> dict:
+    def _generate_game_report(self) -> dict[str, Any]:
         """Generate complete game report."""
-        report = {
+        report: dict[str, Any] = {
             "game_over": self.state.game_over,
             "total_rounds": self.state.current_round - 1,
             "total_actions": len(self.state.round_logs),
@@ -472,27 +461,31 @@ class GameSimulator:
             "logs": [],
             "scoring_summary": self.state.scoring_engine.get_game_summary(
                 self.state.player_ids
-            )
+            ),
         }
 
         # Final scores
         for player_id in self.state.player_ids:
             report["final_scores"][player_id] = {
-                "score": self.state.scoring_engine.calculate_total_score_for_player(player_id),
-                "cards_left": len(self.state.player_hands[player_id])
+                "score": self.state.scoring_engine.calculate_total_score_for_player(
+                    player_id
+                ),
+                "cards_left": len(self.state.player_hands[player_id]),
             }
 
         # Action logs
         for log in self.state.round_logs:
-            report["logs"].append({
-                "round": log.round_number,
-                "action": log.action_number,
-                "player": log.player_id,
-                "action_type": log.action.value,
-                "pattern": log.pattern.play_type.name if log.pattern else None,
-                "cards": [str(c) for c in log.cards_played],
-                "hand_size_after": log.hand_size_after,
-                "is_round_winner": log.is_round_winner
-            })
+            report["logs"].append(
+                {
+                    "round": log.round_number,
+                    "action": log.action_number,
+                    "player": log.player_id,
+                    "action_type": log.action.value,
+                    "pattern": log.pattern.play_type.name if log.pattern else None,
+                    "cards": [str(c) for c in log.cards_played],
+                    "hand_size_after": log.hand_size_after,
+                    "is_round_winner": log.is_round_winner,
+                }
+            )
 
         return report

@@ -1,10 +1,6 @@
 """Test pattern recognition and play validation."""
 
-import pytest
-from datongzi_rules import Card, Suit, Rank
-from datongzi_rules import (
-    PatternRecognizer, PlayValidator, PlayPattern, PlayType
-)
+from datongzi_rules import Card, PatternRecognizer, PlayType, PlayValidator, Rank, Suit
 
 
 class TestPatternRecognizer:
@@ -22,10 +18,7 @@ class TestPatternRecognizer:
 
     def test_pair(self):
         """Test recognizing pair."""
-        cards = [
-            Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.HEARTS, Rank.ACE)
-        ]
+        cards = [Card(Suit.SPADES, Rank.ACE), Card(Suit.HEARTS, Rank.ACE)]
         pattern = PatternRecognizer.analyze_cards(cards)
 
         assert pattern is not None
@@ -35,10 +28,7 @@ class TestPatternRecognizer:
 
     def test_invalid_pair(self):
         """Test invalid pair (different ranks)."""
-        cards = [
-            Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.HEARTS, Rank.KING)
-        ]
+        cards = [Card(Suit.SPADES, Rank.ACE), Card(Suit.HEARTS, Rank.KING)]
         pattern = PatternRecognizer.analyze_cards(cards)
 
         assert pattern is None
@@ -49,7 +39,7 @@ class TestPatternRecognizer:
             Card(Suit.SPADES, Rank.JACK),
             Card(Suit.HEARTS, Rank.JACK),
             Card(Suit.CLUBS, Rank.QUEEN),
-            Card(Suit.DIAMONDS, Rank.QUEEN)
+            Card(Suit.DIAMONDS, Rank.QUEEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -64,7 +54,7 @@ class TestPatternRecognizer:
         cards = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.CLUBS, Rank.KING)
+            Card(Suit.CLUBS, Rank.KING),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -80,7 +70,7 @@ class TestPatternRecognizer:
             Card(Suit.HEARTS, Rank.KING),
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.SPADES, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.FIVE)
+            Card(Suit.HEARTS, Rank.FIVE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -97,7 +87,7 @@ class TestPatternRecognizer:
             Card(Suit.CLUBS, Rank.JACK),
             Card(Suit.SPADES, Rank.QUEEN),
             Card(Suit.HEARTS, Rank.QUEEN),
-            Card(Suit.DIAMONDS, Rank.QUEEN)
+            Card(Suit.DIAMONDS, Rank.QUEEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -119,7 +109,7 @@ class TestPatternRecognizer:
             Card(Suit.DIAMONDS, Rank.JACK),
             # 2 singles as wings
             Card(Suit.DIAMONDS, Rank.NINE),
-            Card(Suit.DIAMONDS, Rank.EIGHT)
+            Card(Suit.DIAMONDS, Rank.EIGHT),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -144,7 +134,7 @@ class TestPatternRecognizer:
             Card(Suit.DIAMONDS, Rank.NINE),
             Card(Suit.CLUBS, Rank.NINE),
             Card(Suit.DIAMONDS, Rank.EIGHT),
-            Card(Suit.CLUBS, Rank.EIGHT)
+            Card(Suit.CLUBS, Rank.EIGHT),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -171,7 +161,7 @@ class TestPatternRecognizer:
             # 1 pair + 1 single as wings (2 wings total)
             Card(Suit.DIAMONDS, Rank.NINE),
             Card(Suit.DIAMONDS, Rank.EIGHT),
-            Card(Suit.CLUBS, Rank.EIGHT)
+            Card(Suit.CLUBS, Rank.EIGHT),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -197,7 +187,7 @@ class TestPatternRecognizer:
             # 3 singles as wings
             Card(Suit.DIAMONDS, Rank.EIGHT),
             Card(Suit.DIAMONDS, Rank.SEVEN),
-            Card(Suit.DIAMONDS, Rank.SIX)
+            Card(Suit.DIAMONDS, Rank.SIX),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -226,7 +216,7 @@ class TestPatternRecognizer:
             Card(Suit.DIAMONDS, Rank.SEVEN),
             Card(Suit.CLUBS, Rank.SEVEN),
             Card(Suit.DIAMONDS, Rank.SIX),
-            Card(Suit.CLUBS, Rank.SIX)
+            Card(Suit.CLUBS, Rank.SIX),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -254,7 +244,7 @@ class TestPatternRecognizer:
             Card(Suit.CLUBS, Rank.EIGHT),
             Card(Suit.DIAMONDS, Rank.SEVEN),
             Card(Suit.CLUBS, Rank.SEVEN),
-            Card(Suit.SPADES, Rank.SIX)
+            Card(Suit.SPADES, Rank.SIX),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -273,7 +263,7 @@ class TestPatternRecognizer:
             Card(Suit.HEARTS, Rank.JACK),
             Card(Suit.CLUBS, Rank.JACK),
             Card(Suit.DIAMONDS, Rank.JACK),
-            Card(Suit.DIAMONDS, Rank.NINE)  # Only 7 cards total
+            Card(Suit.DIAMONDS, Rank.NINE),  # Only 7 cards total
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -293,7 +283,7 @@ class TestPatternRecognizer:
             Card(Suit.DIAMONDS, Rank.JACK),
             # 2 singles as wings
             Card(Suit.DIAMONDS, Rank.EIGHT),
-            Card(Suit.DIAMONDS, Rank.SEVEN)
+            Card(Suit.DIAMONDS, Rank.SEVEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -311,7 +301,7 @@ class TestPatternRecognizer:
             Card(Suit.CLUBS, Rank.JACK),
             Card(Suit.DIAMONDS, Rank.JACK),
             # Only 1 wing (need 2)
-            Card(Suit.DIAMONDS, Rank.NINE)
+            Card(Suit.DIAMONDS, Rank.NINE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -335,7 +325,7 @@ class TestPatternRecognizer:
             # 3 singles as wings
             Card(Suit.DIAMONDS, Rank.NINE),
             Card(Suit.DIAMONDS, Rank.EIGHT),
-            Card(Suit.DIAMONDS, Rank.SEVEN)
+            Card(Suit.DIAMONDS, Rank.SEVEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -358,7 +348,7 @@ class TestPatternRecognizer:
             # Wing contains 3 cards of same rank (invalid)
             Card(Suit.DIAMONDS, Rank.NINE),
             Card(Suit.CLUBS, Rank.NINE),
-            Card(Suit.HEARTS, Rank.NINE)
+            Card(Suit.HEARTS, Rank.NINE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -372,7 +362,7 @@ class TestPatternRecognizer:
             Card(Suit.SPADES, Rank.SEVEN),
             Card(Suit.HEARTS, Rank.SEVEN),
             Card(Suit.CLUBS, Rank.SEVEN),
-            Card(Suit.DIAMONDS, Rank.SEVEN)
+            Card(Suit.DIAMONDS, Rank.SEVEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -388,7 +378,7 @@ class TestPatternRecognizer:
             Card(Suit.HEARTS, Rank.NINE),
             Card(Suit.CLUBS, Rank.NINE),
             Card(Suit.DIAMONDS, Rank.NINE),
-            Card(Suit.SPADES, Rank.NINE)  # From different deck
+            Card(Suit.SPADES, Rank.NINE),  # From different deck
         ]
         # This would only work with multiple decks
         # For now, let's test with 4 cards
@@ -404,7 +394,7 @@ class TestPatternRecognizer:
         cards = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.SPADES, Rank.KING)
+            Card(Suit.SPADES, Rank.KING),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -424,7 +414,7 @@ class TestPatternRecognizer:
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.DIAMONDS, Rank.ACE),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -438,7 +428,7 @@ class TestPatternRecognizer:
         cards = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.CLUBS, Rank.QUEEN)
+            Card(Suit.CLUBS, Rank.QUEEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
 
@@ -474,13 +464,13 @@ class TestPlayValidator:
         current_cards = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
+            Card(Suit.CLUBS, Rank.ACE),
         ]
         new_cards = [
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current_cards)
@@ -492,12 +482,12 @@ class TestPlayValidator:
             Card(Suit.SPADES, Rank.SEVEN),
             Card(Suit.HEARTS, Rank.SEVEN),
             Card(Suit.CLUBS, Rank.SEVEN),
-            Card(Suit.DIAMONDS, Rank.SEVEN)
+            Card(Suit.DIAMONDS, Rank.SEVEN),
         ]
         new_cards = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.SPADES, Rank.KING)
+            Card(Suit.SPADES, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current_cards)
@@ -508,7 +498,7 @@ class TestPlayValidator:
         current_cards = [
             Card(Suit.SPADES, Rank.TWO),
             Card(Suit.SPADES, Rank.TWO),
-            Card(Suit.SPADES, Rank.TWO)
+            Card(Suit.SPADES, Rank.TWO),
         ]
         new_cards = [
             Card(Suit.SPADES, Rank.FIVE),
@@ -518,7 +508,7 @@ class TestPlayValidator:
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current_cards)
@@ -526,10 +516,7 @@ class TestPlayValidator:
 
     def test_different_pattern_types_cannot_beat(self):
         """Test different pattern types cannot beat each other."""
-        current_cards = [
-            Card(Suit.SPADES, Rank.JACK),
-            Card(Suit.HEARTS, Rank.JACK)
-        ]
+        current_cards = [Card(Suit.SPADES, Rank.JACK), Card(Suit.HEARTS, Rank.JACK)]
         new_cards = [Card(Suit.CLUBS, Rank.QUEEN)]
 
         current_pattern = PatternRecognizer.analyze_cards(current_cards)
@@ -541,10 +528,7 @@ class TestPlayValidator:
         assert PlayValidator.can_beat_play(new_cards, None)
 
         # Invalid play should still fail
-        invalid_cards = [
-            Card(Suit.SPADES, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.SEVEN)
-        ]
+        invalid_cards = [Card(Suit.SPADES, Rank.FIVE), Card(Suit.HEARTS, Rank.SEVEN)]
         assert not PlayValidator.can_beat_play(invalid_cards, None)
 
 
@@ -574,12 +558,12 @@ class TestPlayComparison:
         current = [
             Card(Suit.SPADES, Rank.EIGHT),
             Card(Suit.HEARTS, Rank.EIGHT),
-            Card(Suit.CLUBS, Rank.EIGHT)
+            Card(Suit.CLUBS, Rank.EIGHT),
         ]
         new = [
             Card(Suit.SPADES, Rank.JACK),
             Card(Suit.HEARTS, Rank.JACK),
-            Card(Suit.CLUBS, Rank.JACK)
+            Card(Suit.CLUBS, Rank.JACK),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -592,14 +576,14 @@ class TestPlayComparison:
             Card(Suit.HEARTS, Rank.NINE),
             Card(Suit.CLUBS, Rank.NINE),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.HEARTS, Rank.KING)
+            Card(Suit.HEARTS, Rank.KING),
         ]
         new = [
             Card(Suit.SPADES, Rank.QUEEN),
             Card(Suit.HEARTS, Rank.QUEEN),
             Card(Suit.CLUBS, Rank.QUEEN),
             Card(Suit.SPADES, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.FIVE)
+            Card(Suit.HEARTS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -611,13 +595,13 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.SEVEN),
             Card(Suit.HEARTS, Rank.SEVEN),
             Card(Suit.SPADES, Rank.EIGHT),
-            Card(Suit.HEARTS, Rank.EIGHT)
+            Card(Suit.HEARTS, Rank.EIGHT),
         ]
         new = [
             Card(Suit.SPADES, Rank.NINE),
             Card(Suit.HEARTS, Rank.NINE),
             Card(Suit.SPADES, Rank.TEN),
-            Card(Suit.HEARTS, Rank.TEN)
+            Card(Suit.HEARTS, Rank.TEN),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -629,7 +613,7 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.SEVEN),
             Card(Suit.HEARTS, Rank.SEVEN),
             Card(Suit.SPADES, Rank.EIGHT),
-            Card(Suit.HEARTS, Rank.EIGHT)
+            Card(Suit.HEARTS, Rank.EIGHT),
         ]
         # 3 pairs vs 2 pairs
         new = [
@@ -638,7 +622,7 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.TEN),
             Card(Suit.HEARTS, Rank.TEN),
             Card(Suit.SPADES, Rank.JACK),
-            Card(Suit.HEARTS, Rank.JACK)
+            Card(Suit.HEARTS, Rank.JACK),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -652,7 +636,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.EIGHT),
             Card(Suit.SPADES, Rank.NINE),
             Card(Suit.HEARTS, Rank.NINE),
-            Card(Suit.CLUBS, Rank.NINE)
+            Card(Suit.CLUBS, Rank.NINE),
         ]
         new = [
             Card(Suit.SPADES, Rank.QUEEN),
@@ -660,7 +644,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.QUEEN),
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.CLUBS, Rank.KING)
+            Card(Suit.CLUBS, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -674,7 +658,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.EIGHT),
             Card(Suit.SPADES, Rank.NINE),
             Card(Suit.HEARTS, Rank.NINE),
-            Card(Suit.CLUBS, Rank.NINE)
+            Card(Suit.CLUBS, Rank.NINE),
         ]
         # 3 triples vs 2 triples
         new = [
@@ -686,7 +670,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
+            Card(Suit.CLUBS, Rank.ACE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -702,7 +686,7 @@ class TestPlayComparison:
             Card(Suit.HEARTS, Rank.EIGHT),
             Card(Suit.CLUBS, Rank.EIGHT),
             Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.SIX)
+            Card(Suit.DIAMONDS, Rank.SIX),
         ]
         new = [
             Card(Suit.SPADES, Rank.TEN),
@@ -712,7 +696,7 @@ class TestPlayComparison:
             Card(Suit.HEARTS, Rank.JACK),
             Card(Suit.CLUBS, Rank.JACK),
             Card(Suit.DIAMONDS, Rank.NINE),
-            Card(Suit.DIAMONDS, Rank.KING)
+            Card(Suit.DIAMONDS, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -728,7 +712,7 @@ class TestPlayComparison:
             Card(Suit.HEARTS, Rank.EIGHT),
             Card(Suit.CLUBS, Rank.EIGHT),
             Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.SIX)
+            Card(Suit.DIAMONDS, Rank.SIX),
         ]
         # 3 triples vs 2 triples
         new = [
@@ -743,7 +727,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.QUEEN),
             Card(Suit.DIAMONDS, Rank.NINE),
             Card(Suit.DIAMONDS, Rank.KING),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -755,13 +739,13 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.SEVEN),
             Card(Suit.HEARTS, Rank.SEVEN),
             Card(Suit.CLUBS, Rank.SEVEN),
-            Card(Suit.DIAMONDS, Rank.SEVEN)
+            Card(Suit.DIAMONDS, Rank.SEVEN),
         ]
         new = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
             Card(Suit.CLUBS, Rank.KING),
-            Card(Suit.DIAMONDS, Rank.KING)
+            Card(Suit.DIAMONDS, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -773,14 +757,14 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.NINE),
             Card(Suit.HEARTS, Rank.NINE),
             Card(Suit.CLUBS, Rank.NINE),
-            Card(Suit.DIAMONDS, Rank.NINE)
+            Card(Suit.DIAMONDS, Rank.NINE),
         ]
         new = [
             Card(Suit.SPADES, Rank.NINE),
             Card(Suit.SPADES, Rank.NINE),  # From another deck
             Card(Suit.HEARTS, Rank.NINE),
             Card(Suit.CLUBS, Rank.NINE),
-            Card(Suit.DIAMONDS, Rank.NINE)
+            Card(Suit.DIAMONDS, Rank.NINE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -795,12 +779,12 @@ class TestPlayComparison:
         current = [
             Card(Suit.HEARTS, Rank.EIGHT),
             Card(Suit.HEARTS, Rank.EIGHT),
-            Card(Suit.HEARTS, Rank.EIGHT)
+            Card(Suit.HEARTS, Rank.EIGHT),
         ]
         new = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.SPADES, Rank.KING)
+            Card(Suit.SPADES, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -811,12 +795,12 @@ class TestPlayComparison:
         current = [
             Card(Suit.HEARTS, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.HEARTS, Rank.KING)
+            Card(Suit.HEARTS, Rank.KING),
         ]
         new = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.SPADES, Rank.KING)
+            Card(Suit.SPADES, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -827,12 +811,12 @@ class TestPlayComparison:
         current = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.SPADES, Rank.KING)
+            Card(Suit.SPADES, Rank.KING),
         ]
         new = [
             Card(Suit.HEARTS, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.HEARTS, Rank.KING)
+            Card(Suit.HEARTS, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -848,7 +832,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.SEVEN),
             Card(Suit.CLUBS, Rank.SEVEN),
             Card(Suit.DIAMONDS, Rank.SEVEN),
-            Card(Suit.DIAMONDS, Rank.SEVEN)
+            Card(Suit.DIAMONDS, Rank.SEVEN),
         ]
         new = [
             Card(Suit.SPADES, Rank.KING),
@@ -858,7 +842,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.DIAMONDS, Rank.KING),
-            Card(Suit.DIAMONDS, Rank.KING)
+            Card(Suit.DIAMONDS, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -879,7 +863,7 @@ class TestPlayComparison:
         current = [
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
-            Card(Suit.CLUBS, Rank.FIVE)
+            Card(Suit.CLUBS, Rank.FIVE),
         ]
         new = [Card(Suit.SPADES, Rank.ACE)]
 
@@ -891,7 +875,7 @@ class TestPlayComparison:
         current = [
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
-            Card(Suit.CLUBS, Rank.FIVE)
+            Card(Suit.CLUBS, Rank.FIVE),
         ]
         new = [Card(Suit.SPADES, Rank.ACE), Card(Suit.HEARTS, Rank.ACE)]
 
@@ -905,12 +889,12 @@ class TestPlayComparison:
             Card(Suit.HEARTS, Rank.SEVEN),
             Card(Suit.CLUBS, Rank.SEVEN),
             Card(Suit.SPADES, Rank.EIGHT),
-            Card(Suit.HEARTS, Rank.EIGHT)
+            Card(Suit.HEARTS, Rank.EIGHT),
         ]
         new = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.CLUBS, Rank.KING)
+            Card(Suit.CLUBS, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -922,7 +906,7 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.SEVEN),
             Card(Suit.HEARTS, Rank.SEVEN),
             Card(Suit.SPADES, Rank.EIGHT),
-            Card(Suit.HEARTS, Rank.EIGHT)
+            Card(Suit.HEARTS, Rank.EIGHT),
         ]
         new = [Card(Suit.SPADES, Rank.ACE), Card(Suit.HEARTS, Rank.ACE)]
 
@@ -937,12 +921,12 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.SEVEN),
             Card(Suit.SPADES, Rank.EIGHT),
             Card(Suit.HEARTS, Rank.EIGHT),
-            Card(Suit.CLUBS, Rank.EIGHT)
+            Card(Suit.CLUBS, Rank.EIGHT),
         ]
         new = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
+            Card(Suit.CLUBS, Rank.ACE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -958,7 +942,7 @@ class TestPlayComparison:
             Card(Suit.HEARTS, Rank.EIGHT),
             Card(Suit.CLUBS, Rank.EIGHT),
             Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.SIX)
+            Card(Suit.DIAMONDS, Rank.SIX),
         ]
         new = [
             Card(Suit.SPADES, Rank.KING),
@@ -966,7 +950,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
+            Card(Suit.CLUBS, Rank.ACE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -981,7 +965,7 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -994,7 +978,7 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1006,13 +990,13 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
             Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.HEARTS, Rank.ACE)
+            Card(Suit.HEARTS, Rank.ACE),
         ]
         new = [
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1026,13 +1010,13 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
+            Card(Suit.CLUBS, Rank.ACE),
         ]
         new = [
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1046,12 +1030,12 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
         new = [
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.SPADES, Rank.FIVE),
-            Card(Suit.SPADES, Rank.FIVE)
+            Card(Suit.SPADES, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1063,7 +1047,7 @@ class TestPlayComparison:
         new = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.SPADES, Rank.KING)
+            Card(Suit.SPADES, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1075,7 +1059,7 @@ class TestPlayComparison:
         new = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.SPADES, Rank.KING)
+            Card(Suit.SPADES, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1086,12 +1070,12 @@ class TestPlayComparison:
         current = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
+            Card(Suit.CLUBS, Rank.ACE),
         ]
         new = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.SPADES, Rank.KING)
+            Card(Suit.SPADES, Rank.KING),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1111,7 +1095,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1123,7 +1107,7 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
         new = [
             Card(Suit.SPADES, Rank.FIVE),
@@ -1133,7 +1117,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1144,7 +1128,7 @@ class TestPlayComparison:
         current = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.SPADES, Rank.ACE)
+            Card(Suit.SPADES, Rank.ACE),
         ]
         new = [
             Card(Suit.SPADES, Rank.FIVE),
@@ -1154,7 +1138,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current)
@@ -1170,7 +1154,7 @@ class TestPlayComparison:
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.DIAMONDS, Rank.KING),
-            Card(Suit.DIAMONDS, Rank.KING)
+            Card(Suit.DIAMONDS, Rank.KING),
         ]
 
         # Bomb cannot beat dizha
@@ -1178,7 +1162,7 @@ class TestPlayComparison:
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
         current_pattern = PatternRecognizer.analyze_cards(current)
         assert not PlayValidator.can_beat_play(bomb, current_pattern)
@@ -1187,6 +1171,6 @@ class TestPlayComparison:
         tongzi = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.SPADES, Rank.ACE)
+            Card(Suit.SPADES, Rank.ACE),
         ]
         assert not PlayValidator.can_beat_play(tongzi, current_pattern)

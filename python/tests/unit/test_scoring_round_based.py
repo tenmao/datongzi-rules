@@ -5,11 +5,16 @@ Test-Driven Development approach for ScoreComputation.
 """
 
 import pytest
+
 from datongzi_rules import (
-    Card, Rank, Suit,
-    GameConfig, ConfigFactory,
-    ScoreComputation, BonusType,
-    PatternRecognizer, PlayType
+    BonusType,
+    Card,
+    ConfigFactory,
+    PatternRecognizer,
+    PlayType,
+    Rank,
+    ScoreComputation,
+    Suit,
 )
 
 
@@ -31,16 +36,14 @@ class TestRoundBasedScoring:
         # Round cards: Player A plays [5♠, 5♥], Player B plays [10♠, K♥], Player C passes
         # Winner: Player B
         round_cards = [
-            Card(Suit.SPADES, Rank.FIVE),    # 5 points
-            Card(Suit.HEARTS, Rank.FIVE),    # 5 points
-            Card(Suit.SPADES, Rank.TEN),     # 10 points
-            Card(Suit.HEARTS, Rank.KING),    # 10 points
+            Card(Suit.SPADES, Rank.FIVE),  # 5 points
+            Card(Suit.HEARTS, Rank.FIVE),  # 5 points
+            Card(Suit.SPADES, Rank.TEN),  # 10 points
+            Card(Suit.HEARTS, Rank.KING),  # 10 points
         ]
 
         event = self.engine.create_round_win_event(
-            player_id="Player_B",
-            round_cards=round_cards,
-            round_number=1
+            player_id="Player_B", round_cards=round_cards, round_number=1
         )
 
         assert event is not None
@@ -61,9 +64,7 @@ class TestRoundBasedScoring:
         ]
 
         event = self.engine.create_round_win_event(
-            player_id="Player_A",
-            round_cards=round_cards,
-            round_number=1
+            player_id="Player_A", round_cards=round_cards, round_number=1
         )
 
         assert event is None  # No points, no event
@@ -77,9 +78,7 @@ class TestRoundBasedScoring:
         ]
 
         event = self.engine.create_round_win_event(
-            player_id="Player_A",
-            round_cards=round_cards,
-            round_number=1
+            player_id="Player_A", round_cards=round_cards, round_number=1
         )
 
         assert event is not None
@@ -95,9 +94,7 @@ class TestRoundBasedScoring:
         ]
 
         event = self.engine.create_round_win_event(
-            player_id="Player_A",
-            round_cards=round_cards,
-            round_number=1
+            player_id="Player_A", round_cards=round_cards, round_number=1
         )
 
         assert event is not None
@@ -106,9 +103,7 @@ class TestRoundBasedScoring:
     def test_empty_round_no_cards(self):
         """Edge case: Empty round."""
         event = self.engine.create_round_win_event(
-            player_id="Player_A",
-            round_cards=[],
-            round_number=1
+            player_id="Player_A", round_cards=[], round_number=1
         )
 
         assert event is None
@@ -134,7 +129,7 @@ class TestRoundBasedScoring:
             player_id="Player_A",
             winning_pattern=pattern,
             round_number=1,
-            is_round_winning_play=True
+            is_round_winning_play=True,
         )
 
         assert len(events) == 1
@@ -154,7 +149,7 @@ class TestRoundBasedScoring:
             player_id="Player_B",
             winning_pattern=pattern,
             round_number=1,
-            is_round_winning_play=True
+            is_round_winning_play=True,
         )
 
         assert len(events) == 1
@@ -174,7 +169,7 @@ class TestRoundBasedScoring:
             player_id="Player_C",
             winning_pattern=pattern,
             round_number=1,
-            is_round_winning_play=True
+            is_round_winning_play=True,
         )
 
         assert len(events) == 1
@@ -198,7 +193,7 @@ class TestRoundBasedScoring:
             player_id="Player_A",
             winning_pattern=pattern_a,
             round_number=1,
-            is_round_winning_play=False  # ← Key parameter
+            is_round_winning_play=False,  # ← Key parameter
         )
 
         assert len(events_a) == 0  # No bonus for non-winning play
@@ -220,7 +215,7 @@ class TestRoundBasedScoring:
             player_id="Player_A",
             winning_pattern=pattern_k,
             round_number=1,
-            is_round_winning_play=False
+            is_round_winning_play=False,
         )
 
         # Player B's A Tongzi (winning)
@@ -235,7 +230,7 @@ class TestRoundBasedScoring:
             player_id="Player_B",
             winning_pattern=pattern_a,
             round_number=1,
-            is_round_winning_play=True
+            is_round_winning_play=True,
         )
 
         assert len(events_a) == 0
@@ -265,7 +260,7 @@ class TestRoundBasedScoring:
             player_id="Player_A",
             winning_pattern=pattern,
             round_number=1,
-            is_round_winning_play=True
+            is_round_winning_play=True,
         )
 
         assert len(events) == 1
@@ -290,7 +285,7 @@ class TestRoundBasedScoring:
             player_id="Player_A",
             winning_pattern=pattern,
             round_number=1,
-            is_round_winning_play=False
+            is_round_winning_play=False,
         )
 
         assert len(events) == 0
@@ -313,7 +308,7 @@ class TestRoundBasedScoring:
             player_id="Player_A",
             winning_pattern=pattern,
             round_number=1,
-            is_round_winning_play=True
+            is_round_winning_play=True,
         )
 
         assert len(events) == 0  # No special bonus for regular bomb
@@ -331,7 +326,7 @@ class TestRoundBasedScoring:
             player_id="Player_A",
             winning_pattern=pattern,
             round_number=1,
-            is_round_winning_play=True
+            is_round_winning_play=True,
         )
 
         assert len(events) == 0
@@ -396,9 +391,7 @@ class TestRoundBasedScoring:
 
         # Base score
         base_event = self.engine.create_round_win_event(
-            player_id="Player_B",
-            round_cards=round_cards,
-            round_number=1
+            player_id="Player_B", round_cards=round_cards, round_number=1
         )
 
         # Special bonus
@@ -407,7 +400,7 @@ class TestRoundBasedScoring:
             player_id="Player_B",
             winning_pattern=k_tongzi_pattern,
             round_number=1,
-            is_round_winning_play=True
+            is_round_winning_play=True,
         )
 
         # Verify
@@ -450,9 +443,7 @@ class TestRoundBasedScoring:
         """All scoring events are recorded in engine history."""
         # Create 3 events
         self.engine.create_round_win_event(
-            "Player_A",
-            [Card(Suit.SPADES, Rank.FIVE)],
-            1
+            "Player_A", [Card(Suit.SPADES, Rank.FIVE)], 1
         )
 
         k_tongzi = [
@@ -471,17 +462,13 @@ class TestRoundBasedScoring:
     def test_validate_scores_consistency(self):
         """Score validation works correctly."""
         # Create some events
-        self.engine.create_round_win_event(
-            "Player_A",
-            [Card(Suit.SPADES, Rank.TEN)],
-            1
-        )
+        self.engine.create_round_win_event("Player_A", [Card(Suit.SPADES, Rank.TEN)], 1)
 
         # Correct scores
-        assert self.engine.validate_scores({"Player_A": 10, "Player_B": 0}) == True
+        assert self.engine.validate_scores({"Player_A": 10, "Player_B": 0})
 
         # Incorrect scores
-        assert self.engine.validate_scores({"Player_A": 20, "Player_B": 0}) == False
+        assert not self.engine.validate_scores({"Player_A": 20, "Player_B": 0})
 
 
 if __name__ == "__main__":

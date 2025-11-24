@@ -1,9 +1,9 @@
 """Card combinations and play types for Da Tong Zi game."""
 
+import logging
 from collections import Counter
 from dataclasses import dataclass
 from enum import IntEnum
-import logging
 
 from ..models.card import Card, Rank, Suit
 
@@ -289,13 +289,11 @@ class PatternRecognizer:
         # Strategy: Greedily select the LARGEST consecutive triple sequence
         # This ensures that if wings contain 3+ cards of same rank that can extend
         # the airplane, we prioritize the extended airplane
-        best_airplane = None
-        best_wing_count = None
 
         # Try all possible consecutive triple combinations, preferring larger airplanes
         for length in range(len(sorted_candidates), 1, -1):  # Start from longest
             for i in range(len(sorted_candidates) - length + 1):
-                candidate_ranks = sorted_candidates[i:i + length]
+                candidate_ranks = sorted_candidates[i : i + length]
 
                 if PatternRecognizer._are_consecutive(candidate_ranks):
                     num_triples = len(candidate_ranks)
@@ -310,7 +308,8 @@ class PatternRecognizer:
                             primary_rank=candidate_ranks[-1],
                             secondary_ranks=candidate_ranks,
                             card_count=len(cards),
-                            strength=candidate_ranks[-1].value * 1000 + len(candidate_ranks),
+                            strength=candidate_ranks[-1].value * 1000
+                            + len(candidate_ranks),
                         )
 
         return None

@@ -1,6 +1,6 @@
 """Tests for PlayFormationValidator utilities."""
 
-from datongzi_rules import Card, Rank, Suit, PlayFormationValidator
+from datongzi_rules import Card, PlayFormationValidator, Rank, Suit
 
 
 def test_can_form_consecutive_pairs_basic():

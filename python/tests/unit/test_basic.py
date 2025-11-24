@@ -1,6 +1,6 @@
 """Basic unit tests for datongzi-rules."""
 
-from datongzi_rules import Card, Rank, Suit, PatternRecognizer, PlayType, PlayValidator
+from datongzi_rules import Card, PatternRecognizer, PlayType, PlayValidator, Rank, Suit
 
 
 def test_card_creation():

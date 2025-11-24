@@ -1,6 +1,14 @@
 """Advanced pattern recognition tests."""
 
-from datongzi_rules import Card, Rank, Suit, PatternRecognizer, PlayType, PlayValidator, PlayPattern
+from datongzi_rules import (
+    Card,
+    PatternRecognizer,
+    PlayPattern,
+    PlayType,
+    PlayValidator,
+    Rank,
+    Suit,
+)
 
 
 def test_consecutive_pairs():
@@ -12,7 +20,7 @@ def test_consecutive_pairs():
         Card(Suit.HEARTS, Rank.SIX),
     ]
     pattern = PatternRecognizer.analyze_cards(cards)
-    
+
     assert pattern is not None
     assert pattern.play_type == PlayType.CONSECUTIVE_PAIRS
     assert pattern.card_count == 4
@@ -30,7 +38,7 @@ def test_consecutive_pairs_long():
         Card(Suit.HEARTS, Rank.NINE),
     ]
     pattern = PatternRecognizer.analyze_cards(cards)
-    
+
     assert pattern is not None
     assert pattern.play_type == PlayType.CONSECUTIVE_PAIRS
     assert pattern.card_count == 6
@@ -47,7 +55,7 @@ def test_triple_with_two():
         Card(Suit.HEARTS, Rank.FIVE),
     ]
     pattern = PatternRecognizer.analyze_cards(cards)
-    
+
     assert pattern is not None
     assert pattern.play_type == PlayType.TRIPLE_WITH_TWO
     assert pattern.primary_rank == Rank.KING
@@ -66,7 +74,7 @@ def test_airplane():
         Card(Suit.CLUBS, Rank.SIX),
     ]
     pattern = PatternRecognizer.analyze_cards(cards)
-    
+
     assert pattern is not None
     assert pattern.play_type == PlayType.AIRPLANE
     assert pattern.card_count == 6
@@ -90,7 +98,7 @@ def test_airplane_with_wings():
         Card(Suit.HEARTS, Rank.SIX),
     ]
     pattern = PatternRecognizer.analyze_cards(cards)
-    
+
     assert pattern is not None
     assert pattern.play_type == PlayType.AIRPLANE_WITH_WINGS
     assert pattern.card_count == 10
@@ -107,14 +115,14 @@ def test_bomb_beats_tongzi():
         Card(Suit.DIAMONDS, Rank.FIVE),
     ]
     current_pattern = PatternRecognizer.analyze_cards(current_cards)
-    
+
     # New play: Tongzi (3 cards, same suit, higher rank)
     tongzi_cards = [
         Card(Suit.SPADES, Rank.KING),
         Card(Suit.SPADES, Rank.KING),
         Card(Suit.SPADES, Rank.KING),
     ]
-    
+
     # Tongzi should beat Bomb
     assert PlayValidator.can_beat_play(tongzi_cards, current_pattern)
     print("✓ Tongzi beats bomb test passed")
@@ -133,14 +141,16 @@ def test_dizha_beats_all():
         Card(Suit.DIAMONDS, Rank.TEN),
         Card(Suit.DIAMONDS, Rank.TEN),
     ]
-    
+
     # Tongzi
-    tongzi_pattern = PatternRecognizer.analyze_cards([
-        Card(Suit.SPADES, Rank.ACE),
-        Card(Suit.SPADES, Rank.ACE),
-        Card(Suit.SPADES, Rank.ACE),
-    ])
-    
+    tongzi_pattern = PatternRecognizer.analyze_cards(
+        [
+            Card(Suit.SPADES, Rank.ACE),
+            Card(Suit.SPADES, Rank.ACE),
+            Card(Suit.SPADES, Rank.ACE),
+        ]
+    )
+
     # Dizha should beat Tongzi
     assert PlayValidator.can_beat_play(dizha_cards, tongzi_pattern)
     print("✓ Dizha beats tongzi test passed")
@@ -160,7 +170,7 @@ def test_dizha_vs_dizha():
         Card(Suit.DIAMONDS, Rank.SEVEN),
     ]
     lower_pattern = PatternRecognizer.analyze_cards(lower_dizha)
-    
+
     # Higher rank dizha
     higher_dizha = [
         Card(Suit.SPADES, Rank.KING),
@@ -172,7 +182,7 @@ def test_dizha_vs_dizha():
         Card(Suit.DIAMONDS, Rank.KING),
         Card(Suit.DIAMONDS, Rank.KING),
     ]
-    
+
     # Higher rank dizha should beat lower
     assert PlayValidator.can_beat_play(higher_dizha, lower_pattern)
     print("✓ Dizha vs dizha test passed")
@@ -188,7 +198,7 @@ def test_bomb_vs_bomb():
         Card(Suit.DIAMONDS, Rank.FIVE),
     ]
     lower_pattern = PatternRecognizer.analyze_cards(lower_bomb)
-    
+
     # Higher rank bomb
     higher_bomb = [
         Card(Suit.SPADES, Rank.KING),
@@ -196,7 +206,7 @@ def test_bomb_vs_bomb():
         Card(Suit.CLUBS, Rank.KING),
         Card(Suit.DIAMONDS, Rank.KING),
     ]
-    
+
     # Higher rank should beat lower
     assert PlayValidator.can_beat_play(higher_bomb, lower_pattern)
     print("✓ Bomb vs bomb test passed")
@@ -212,7 +222,7 @@ def test_larger_bomb_beats_smaller():
         Card(Suit.DIAMONDS, Rank.KING),
     ]
     small_pattern = PatternRecognizer.analyze_cards(small_bomb)
-    
+
     # 5-card bomb (same rank)
     large_bomb = [
         Card(Suit.SPADES, Rank.KING),
@@ -221,7 +231,7 @@ def test_larger_bomb_beats_smaller():
         Card(Suit.DIAMONDS, Rank.KING),
         Card(Suit.SPADES, Rank.KING),  # From second deck
     ]
-    
+
     # Larger count should beat smaller
     assert PlayValidator.can_beat_play(large_bomb, small_pattern)
     print("✓ Larger bomb beats smaller test passed")
@@ -237,7 +247,7 @@ def test_consecutive_pairs_comparison():
         Card(Suit.HEARTS, Rank.SIX),
     ]
     short_pattern = PatternRecognizer.analyze_cards(short_pairs)
-    
+
     # 3-pair consecutive (different length)
     long_pairs = [
         Card(Suit.SPADES, Rank.SEVEN),
@@ -247,7 +257,7 @@ def test_consecutive_pairs_comparison():
         Card(Suit.SPADES, Rank.NINE),
         Card(Suit.HEARTS, Rank.NINE),
     ]
-    
+
     # Different lengths should not beat
     assert not PlayValidator.can_beat_play(long_pairs, short_pattern)
     print("✓ Consecutive pairs length comparison test passed")
@@ -263,7 +273,7 @@ def test_same_type_strength_comparison():
         Card(Suit.HEARTS, Rank.SIX),
     ]
     lower_pattern = PatternRecognizer.analyze_cards(lower_pairs)
-    
+
     # Higher consecutive pairs (same length)
     higher_pairs = [
         Card(Suit.SPADES, Rank.KING),
@@ -271,7 +281,7 @@ def test_same_type_strength_comparison():
         Card(Suit.SPADES, Rank.ACE),
         Card(Suit.HEARTS, Rank.ACE),
     ]
-    
+
     # Higher strength should beat lower
     assert PlayValidator.can_beat_play(higher_pairs, lower_pattern)
     print("✓ Same type strength comparison test passed")
@@ -280,7 +290,7 @@ def test_same_type_strength_comparison():
 def test_play_validator_starting_round():
     """Test that any valid pattern can start a new round."""
     single = [Card(Suit.SPADES, Rank.FIVE)]
-    
+
     # Starting round (current_play = None)
     assert PlayValidator.can_beat_play(single, None)
     print("✓ Play validator starting round test passed")
@@ -291,13 +301,13 @@ def test_play_validator_invalid_pattern():
     # Valid current play
     current_cards = [Card(Suit.SPADES, Rank.FIVE)]
     current_pattern = PatternRecognizer.analyze_cards(current_cards)
-    
+
     # Invalid new play (mismatched cards)
     invalid_cards = [
         Card(Suit.SPADES, Rank.ACE),
         Card(Suit.HEARTS, Rank.KING),
     ]
-    
+
     assert not PlayValidator.can_beat_play(invalid_cards, current_pattern)
     print("✓ Invalid pattern cannot beat test passed")
 
@@ -310,10 +320,7 @@ class TestEnhancedPlayValidation:
     def test_invalid_mixed_rank_combinations(self):
         """Test various invalid mixed rank combinations."""
         # Invalid: 5, 6 (not a valid combination)
-        cards = [
-            Card(Suit.SPADES, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.SIX)
-        ]
+        cards = [Card(Suit.SPADES, Rank.FIVE), Card(Suit.HEARTS, Rank.SIX)]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None
 
@@ -321,7 +328,7 @@ class TestEnhancedPlayValidation:
         cards = [
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.SIX),
-            Card(Suit.CLUBS, Rank.SEVEN)
+            Card(Suit.CLUBS, Rank.SEVEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None
@@ -330,7 +337,7 @@ class TestEnhancedPlayValidation:
         cards = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.CLUBS, Rank.QUEEN)
+            Card(Suit.CLUBS, Rank.QUEEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None
@@ -341,7 +348,7 @@ class TestEnhancedPlayValidation:
         cards = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.CLUBS, Rank.KING)
+            Card(Suit.CLUBS, Rank.KING),
         ]
         # This should be TRIPLE, not PAIR
         pattern = PatternRecognizer.analyze_cards(cards)
@@ -352,7 +359,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.SIX),
             Card(Suit.CLUBS, Rank.SEVEN),
-            Card(Suit.DIAMONDS, Rank.EIGHT)
+            Card(Suit.DIAMONDS, Rank.EIGHT),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None
@@ -360,10 +367,7 @@ class TestEnhancedPlayValidation:
     def test_incomplete_patterns(self):
         """Test incomplete or broken patterns."""
         # Incomplete consecutive pairs (only one pair)
-        cards = [
-            Card(Suit.SPADES, Rank.JACK),
-            Card(Suit.HEARTS, Rank.JACK)
-        ]
+        cards = [Card(Suit.SPADES, Rank.JACK), Card(Suit.HEARTS, Rank.JACK)]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.play_type == PlayType.PAIR  # Should be pair, not consecutive
 
@@ -371,7 +375,7 @@ class TestEnhancedPlayValidation:
         cards = [
             Card(Suit.SPADES, Rank.QUEEN),
             Card(Suit.HEARTS, Rank.QUEEN),
-            Card(Suit.CLUBS, Rank.QUEEN)
+            Card(Suit.CLUBS, Rank.QUEEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.play_type == PlayType.TRIPLE  # Should be triple, not airplane
@@ -380,7 +384,7 @@ class TestEnhancedPlayValidation:
         cards = [
             Card(Suit.SPADES, Rank.SEVEN),
             Card(Suit.HEARTS, Rank.SEVEN),
-            Card(Suit.CLUBS, Rank.SEVEN)
+            Card(Suit.CLUBS, Rank.SEVEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.play_type == PlayType.TRIPLE  # Should be triple, not bomb
@@ -394,7 +398,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.SPADES, Rank.QUEEN),
             Card(Suit.HEARTS, Rank.QUEEN),
-            Card(Suit.CLUBS, Rank.QUEEN)
+            Card(Suit.CLUBS, Rank.QUEEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.play_type == PlayType.AIRPLANE  # Should be airplane
@@ -404,7 +408,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.HEARTS, Rank.KING),
             Card(Suit.CLUBS, Rank.KING),
-            Card(Suit.SPADES, Rank.FIVE)
+            Card(Suit.SPADES, Rank.FIVE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None  # Invalid combination
@@ -416,7 +420,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.CLUBS, Rank.KING),
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.SIX),
-            Card(Suit.CLUBS, Rank.SEVEN)
+            Card(Suit.CLUBS, Rank.SEVEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None  # Invalid combination
@@ -425,11 +429,11 @@ class TestEnhancedPlayValidation:
         """Test complex invalid card combinations."""
         # Mixed pattern types
         cards = [
-            Card(Suit.SPADES, Rank.ACE),      # Single
-            Card(Suit.HEARTS, Rank.KING),    # Another single
-            Card(Suit.CLUBS, Rank.QUEEN),    # Another single
-            Card(Suit.SPADES, Rank.JACK),    # Pair start
-            Card(Suit.HEARTS, Rank.JACK)     # Pair end
+            Card(Suit.SPADES, Rank.ACE),  # Single
+            Card(Suit.HEARTS, Rank.KING),  # Another single
+            Card(Suit.CLUBS, Rank.QUEEN),  # Another single
+            Card(Suit.SPADES, Rank.JACK),  # Pair start
+            Card(Suit.HEARTS, Rank.JACK),  # Pair end
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None
@@ -445,7 +449,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.CLUBS, Rank.JACK),
             Card(Suit.DIAMONDS, Rank.QUEEN),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.HEARTS, Rank.ACE)
+            Card(Suit.HEARTS, Rank.ACE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None
@@ -478,16 +482,13 @@ class TestEnhancedPlayValidation:
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.SEVEN),  # Gap here
-            Card(Suit.DIAMONDS, Rank.SEVEN)
+            Card(Suit.DIAMONDS, Rank.SEVEN),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern is None  # Should be invalid due to gap
 
         # Too few consecutive pairs (need at least 2)
-        cards = [
-            Card(Suit.SPADES, Rank.JACK),
-            Card(Suit.HEARTS, Rank.JACK)
-        ]
+        cards = [Card(Suit.SPADES, Rank.JACK), Card(Suit.HEARTS, Rank.JACK)]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.play_type == PlayType.PAIR  # Should be pair, not consecutive
 
@@ -496,7 +497,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.SPADES, Rank.FIVE),
             Card(Suit.HEARTS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.SIX),
-            Card(Suit.DIAMONDS, Rank.SIX)
+            Card(Suit.DIAMONDS, Rank.SIX),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.play_type == PlayType.CONSECUTIVE_PAIRS
@@ -507,7 +508,7 @@ class TestEnhancedPlayValidation:
         cards = [
             Card(Suit.SPADES, Rank.KING),
             Card(Suit.SPADES, Rank.KING),
-            Card(Suit.HEARTS, Rank.KING)  # Different suit
+            Card(Suit.HEARTS, Rank.KING),  # Different suit
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.play_type == PlayType.TRIPLE  # Should be triple, not tongzi
@@ -519,7 +520,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.HEARTS, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
+            Card(Suit.CLUBS, Rank.ACE),
             # Missing diamonds
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
@@ -527,13 +528,13 @@ class TestEnhancedPlayValidation:
 
         # Dizha with wrong count per suit - should be recognized as bomb
         cards = [
-            Card(Suit.SPADES, Rank.ACE),      # Only 1 spade
+            Card(Suit.SPADES, Rank.ACE),  # Only 1 spade
             Card(Suit.HEARTS, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.DIAMONDS, Rank.ACE),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.play_type == PlayType.BOMB  # Should be bomb (7 of same rank)
@@ -548,14 +549,11 @@ class TestEnhancedPlayValidation:
         assert not PlayValidator.can_beat_play(new_cards, current_pattern)
 
         # Wrong pattern type shouldn't beat
-        current_cards = [
-            Card(Suit.SPADES, Rank.KING),
-            Card(Suit.HEARTS, Rank.KING)
-        ]
+        current_cards = [Card(Suit.SPADES, Rank.KING), Card(Suit.HEARTS, Rank.KING)]
         new_cards = [
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.DIAMONDS, Rank.ACE),
-            Card(Suit.SPADES, Rank.ACE)
+            Card(Suit.SPADES, Rank.ACE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current_cards)
@@ -570,7 +568,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.CLUBS, Rank.FIVE),
             Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
+            Card(Suit.DIAMONDS, Rank.FIVE),
         ]
         new_cards = [
             Card(Suit.SPADES, Rank.ACE),
@@ -580,7 +578,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.DIAMONDS, Rank.ACE),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
 
         current_pattern = PatternRecognizer.analyze_cards(current_cards)
@@ -603,7 +601,7 @@ class TestEnhancedPlayValidation:
             primary_suit=Suit.SPADES,
             secondary_ranks=[],
             card_count=1,
-            strength=1300
+            strength=1300,
         )
         assert not PlayValidator.can_beat_play([], current_pattern)
         assert not PlayValidator.can_beat_play(None, current_pattern)
@@ -616,10 +614,7 @@ class TestEnhancedPlayValidation:
         assert pattern.card_count == 1
 
         # Pair must be exactly 2 cards
-        cards = [
-            Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.HEARTS, Rank.ACE)
-        ]
+        cards = [Card(Suit.SPADES, Rank.ACE), Card(Suit.HEARTS, Rank.ACE)]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.card_count == 2
 
@@ -627,7 +622,7 @@ class TestEnhancedPlayValidation:
         cards = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
+            Card(Suit.CLUBS, Rank.ACE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.card_count == 3
@@ -637,7 +632,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.HEARTS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.card_count == 4
@@ -646,7 +641,7 @@ class TestEnhancedPlayValidation:
         cards = [
             Card(Suit.SPADES, Rank.ACE),
             Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.SPADES, Rank.ACE)
+            Card(Suit.SPADES, Rank.ACE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.card_count == 3
@@ -660,7 +655,7 @@ class TestEnhancedPlayValidation:
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.CLUBS, Rank.ACE),
             Card(Suit.DIAMONDS, Rank.ACE),
-            Card(Suit.DIAMONDS, Rank.ACE)
+            Card(Suit.DIAMONDS, Rank.ACE),
         ]
         pattern = PatternRecognizer.analyze_cards(cards)
         assert pattern.card_count == 8
@@ -689,34 +684,42 @@ class TestEnhancedPlayValidation:
         assert ace_single.strength > king_single.strength
 
         # Special patterns should have higher strength than regular patterns
-        ace_tongzi = PatternRecognizer.analyze_cards([
-            Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.SPADES, Rank.ACE)
-        ])
-        ace_triple = PatternRecognizer.analyze_cards([
-            Card(Suit.SPADES, Rank.ACE),
-            Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.CLUBS, Rank.ACE)
-        ])
+        ace_tongzi = PatternRecognizer.analyze_cards(
+            [
+                Card(Suit.SPADES, Rank.ACE),
+                Card(Suit.SPADES, Rank.ACE),
+                Card(Suit.SPADES, Rank.ACE),
+            ]
+        )
+        ace_triple = PatternRecognizer.analyze_cards(
+            [
+                Card(Suit.SPADES, Rank.ACE),
+                Card(Suit.HEARTS, Rank.ACE),
+                Card(Suit.CLUBS, Rank.ACE),
+            ]
+        )
         assert ace_tongzi.strength > ace_triple.strength
 
         # Dizha should have highest strength
-        five_dizha = PatternRecognizer.analyze_cards([
-            Card(Suit.SPADES, Rank.FIVE),
-            Card(Suit.SPADES, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.FIVE),
-            Card(Suit.CLUBS, Rank.FIVE),
-            Card(Suit.CLUBS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.DIAMONDS, Rank.FIVE)
-        ])
-        two_tongzi = PatternRecognizer.analyze_cards([
-            Card(Suit.SPADES, Rank.TWO),
-            Card(Suit.SPADES, Rank.TWO),
-            Card(Suit.SPADES, Rank.TWO)
-        ])
+        five_dizha = PatternRecognizer.analyze_cards(
+            [
+                Card(Suit.SPADES, Rank.FIVE),
+                Card(Suit.SPADES, Rank.FIVE),
+                Card(Suit.HEARTS, Rank.FIVE),
+                Card(Suit.HEARTS, Rank.FIVE),
+                Card(Suit.CLUBS, Rank.FIVE),
+                Card(Suit.CLUBS, Rank.FIVE),
+                Card(Suit.DIAMONDS, Rank.FIVE),
+                Card(Suit.DIAMONDS, Rank.FIVE),
+            ]
+        )
+        two_tongzi = PatternRecognizer.analyze_cards(
+            [
+                Card(Suit.SPADES, Rank.TWO),
+                Card(Suit.SPADES, Rank.TWO),
+                Card(Suit.SPADES, Rank.TWO),
+            ]
+        )
         assert five_dizha.strength > two_tongzi.strength
 
 
@@ -748,4 +751,3 @@ class TestPatternRecognitionEdgeCases:
         pattern = PatternRecognizer.analyze_cards(twos)
         assert pattern is not None
         assert pattern.primary_rank == Rank.TWO
-

@@ -1,6 +1,6 @@
 """Tests for PatternFinder utilities."""
 
-from datongzi_rules import Card, Rank, Suit, PatternFinder
+from datongzi_rules import Card, PatternFinder, Rank, Suit
 
 
 def test_find_pairs_basic():

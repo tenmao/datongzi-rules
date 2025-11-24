@@ -1,11 +1,15 @@
 """Play generation for AI assistance - Zero Dependency Version."""
 
-from collections import Counter
-from itertools import combinations
 import logging
+from itertools import combinations
 
-from ..models.card import Card, Rank
-from ..patterns.recognizer import PatternRecognizer, PlayPattern, PlayType, PlayValidator
+from ..models.card import Card, Rank, Suit
+from ..patterns.recognizer import (
+    PatternRecognizer,
+    PlayPattern,
+    PlayType,
+    PlayValidator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +26,9 @@ class PlayGenerator:
     """
 
     @staticmethod
-    def generate_all_plays(hand: list[Card], max_combinations: int = 1000) -> list[list[Card]]:
+    def generate_all_plays(
+        hand: list[Card], max_combinations: int = 1000
+    ) -> list[list[Card]]:
         """
         Generate all possible valid plays from hand.
 
@@ -183,7 +189,9 @@ class PlayGenerator:
             )
         elif current_type == PlayType.AIRPLANE_WITH_WINGS:
             beating_plays.extend(
-                PlayGenerator._generate_higher_airplane_with_wings(hand, current_pattern)
+                PlayGenerator._generate_higher_airplane_with_wings(
+                    hand, current_pattern
+                )
             )
 
         # 2. Generate trump plays (if current is not trump, or higher trump)
@@ -215,7 +223,8 @@ class PlayGenerator:
 
         # 3. Validate all plays can actually beat current pattern
         valid_plays = [
-            play for play in beating_plays
+            play
+            for play in beating_plays
             if PlayValidator.can_beat_play(play, current_pattern)
         ]
 
@@ -284,8 +293,8 @@ class PlayGenerator:
         """Generate all valid pairs from hand."""
         pairs = []
         rank_groups = PlayGenerator._group_by_rank(hand)
-        
-        for rank, cards in rank_groups.items():
+
+        for _rank, cards in rank_groups.items():
             if len(cards) >= 2:
                 # Generate all 2-card combinations
                 for pair in combinations(cards, 2):
@@ -293,7 +302,7 @@ class PlayGenerator:
                     pattern = PatternRecognizer.analyze_cards(pair_list)
                     if pattern and pattern.play_type == PlayType.PAIR:
                         pairs.append(pair_list)
-        
+
         return pairs
 
     @staticmethod
@@ -301,26 +310,26 @@ class PlayGenerator:
         """Generate all valid consecutive pairs from hand."""
         consecutive_pairs = []
         rank_groups = PlayGenerator._group_by_rank(hand)
-        
+
         # Get ranks that have at least 2 cards
         valid_ranks = sorted([r for r, cards in rank_groups.items() if len(cards) >= 2])
-        
+
         # Try all consecutive sequences of length 2+
         for length in range(2, len(valid_ranks) + 1):
             for i in range(len(valid_ranks) - length + 1):
-                ranks = valid_ranks[i:i+length]
-                
+                ranks = valid_ranks[i : i + length]
+
                 # Check if consecutive
                 if PlayGenerator._is_consecutive(ranks):
                     # Take 2 cards from each rank
                     cards_list = []
                     for rank in ranks:
                         cards_list.extend(rank_groups[rank][:2])
-                    
+
                     pattern = PatternRecognizer.analyze_cards(cards_list)
                     if pattern and pattern.play_type == PlayType.CONSECUTIVE_PAIRS:
                         consecutive_pairs.append(cards_list)
-        
+
         return consecutive_pairs
 
     @staticmethod
@@ -328,8 +337,8 @@ class PlayGenerator:
         """Generate all valid triples from hand."""
         triples = []
         rank_groups = PlayGenerator._group_by_rank(hand)
-        
-        for rank, cards in rank_groups.items():
+
+        for _rank, cards in rank_groups.items():
             if len(cards) >= 3:
                 # Generate all 3-card combinations
                 for triple in combinations(cards, 3):
@@ -337,7 +346,7 @@ class PlayGenerator:
                     pattern = PatternRecognizer.analyze_cards(triple_list)
                     if pattern and pattern.play_type == PlayType.TRIPLE:
                         triples.append(triple_list)
-        
+
         return triples
 
     @staticmethod
@@ -345,18 +354,22 @@ class PlayGenerator:
         """Generate all valid triple with two combinations."""
         results = []
         rank_groups = PlayGenerator._group_by_rank(hand)
-        
+
         # Find all triples
         triple_ranks = [r for r, cards in rank_groups.items() if len(cards) >= 3]
-        
+
         # Find all pairs
-        pair_ranks = [r for r, cards in rank_groups.items() if len(cards) >= 2 and r not in triple_ranks]
+        pair_ranks = [
+            r
+            for r, cards in rank_groups.items()
+            if len(cards) >= 2 and r not in triple_ranks
+        ]
         # Also check if triple rank has enough cards for both triple and pair
         pair_ranks.extend([r for r in triple_ranks if len(rank_groups[r]) >= 5])
-        
+
         for triple_rank in triple_ranks:
             triple_cards = rank_groups[triple_rank][:3]
-            
+
             for pair_rank in pair_ranks:
                 if pair_rank == triple_rank:
                     # Need 5 cards of same rank
@@ -366,12 +379,12 @@ class PlayGenerator:
                         continue
                 else:
                     pair_cards = rank_groups[pair_rank][:2]
-                
+
                 combo = triple_cards + pair_cards
                 pattern = PatternRecognizer.analyze_cards(combo)
                 if pattern and pattern.play_type == PlayType.TRIPLE_WITH_TWO:
                     results.append(combo)
-        
+
         return results
 
     @staticmethod
@@ -379,26 +392,26 @@ class PlayGenerator:
         """Generate all valid airplane patterns (consecutive triples)."""
         airplanes = []
         rank_groups = PlayGenerator._group_by_rank(hand)
-        
+
         # Get ranks with at least 3 cards
         valid_ranks = sorted([r for r, cards in rank_groups.items() if len(cards) >= 3])
-        
+
         # Try all consecutive sequences of length 2+
         for length in range(2, len(valid_ranks) + 1):
             for i in range(len(valid_ranks) - length + 1):
-                ranks = valid_ranks[i:i+length]
-                
+                ranks = valid_ranks[i : i + length]
+
                 # Check if consecutive
                 if PlayGenerator._is_consecutive(ranks):
                     # Take 3 cards from each rank
                     cards_list = []
                     for rank in ranks:
                         cards_list.extend(rank_groups[rank][:3])
-                    
+
                     pattern = PatternRecognizer.analyze_cards(cards_list)
                     if pattern and pattern.play_type == PlayType.AIRPLANE:
                         airplanes.append(cards_list)
-        
+
         return airplanes
 
     @staticmethod
@@ -406,28 +419,30 @@ class PlayGenerator:
         """Generate all valid airplane with wings patterns."""
         results = []
         rank_groups = PlayGenerator._group_by_rank(hand)
-        
+
         # Get consecutive triples (airplanes)
         valid_ranks = sorted([r for r, cards in rank_groups.items() if len(cards) >= 3])
-        
+
         for length in range(2, len(valid_ranks) + 1):
             for i in range(len(valid_ranks) - length + 1):
-                ranks = valid_ranks[i:i+length]
-                
+                ranks = valid_ranks[i : i + length]
+
                 if not PlayGenerator._is_consecutive(ranks):
                     continue
-                
+
                 # Get airplane cards
                 airplane_cards = []
                 for rank in ranks:
                     airplane_cards.extend(rank_groups[rank][:3])
-                
+
                 # Find available pairs for wings
                 remaining_cards = [c for c in hand if c not in airplane_cards]
                 remaining_groups = PlayGenerator._group_by_rank(remaining_cards)
-                
-                pair_ranks = [r for r, cards in remaining_groups.items() if len(cards) >= 2]
-                
+
+                pair_ranks = [
+                    r for r, cards in remaining_groups.items() if len(cards) >= 2
+                ]
+
                 # Need same number of pairs as triples
                 if len(pair_ranks) >= length:
                     # Try combinations of pairs
@@ -435,12 +450,15 @@ class PlayGenerator:
                         wing_cards = []
                         for rank in pair_combo:
                             wing_cards.extend(remaining_groups[rank][:2])
-                        
+
                         combo = airplane_cards + wing_cards
                         pattern = PatternRecognizer.analyze_cards(combo)
-                        if pattern and pattern.play_type == PlayType.AIRPLANE_WITH_WINGS:
+                        if (
+                            pattern
+                            and pattern.play_type == PlayType.AIRPLANE_WITH_WINGS
+                        ):
                             results.append(combo)
-        
+
         return results
 
     @staticmethod
@@ -448,8 +466,8 @@ class PlayGenerator:
         """Generate all valid bombs from hand."""
         bombs = []
         rank_groups = PlayGenerator._group_by_rank(hand)
-        
-        for rank, cards in rank_groups.items():
+
+        for _rank, cards in rank_groups.items():
             if len(cards) >= 4:
                 # Generate bombs of all possible sizes (4, 5, 6, etc.)
                 for size in range(4, len(cards) + 1):
@@ -458,31 +476,31 @@ class PlayGenerator:
                         pattern = PatternRecognizer.analyze_cards(bomb_list)
                         if pattern and pattern.play_type == PlayType.BOMB:
                             bombs.append(bomb_list)
-        
+
         return bombs
 
     @staticmethod
     def _generate_tongzi(hand: list[Card]) -> list[list[Card]]:
         """Generate all valid tongzi patterns (3 same suit, same rank)."""
         tongzi = []
-        
+
         # Group by (suit, rank)
-        suit_rank_groups = {}
+        suit_rank_groups: dict[tuple[Suit, Rank], list[Card]] = {}
         for card in hand:
             key = (card.suit, card.rank)
             if key not in suit_rank_groups:
                 suit_rank_groups[key] = []
             suit_rank_groups[key].append(card)
-        
+
         # Find suit-rank combinations with 3+ cards
-        for (suit, rank), cards in suit_rank_groups.items():
+        for (_suit, _rank), cards in suit_rank_groups.items():
             if len(cards) >= 3:
                 for triple in combinations(cards, 3):
                     triple_list = list(triple)
                     pattern = PatternRecognizer.analyze_cards(triple_list)
                     if pattern and pattern.play_type == PlayType.TONGZI:
                         tongzi.append(triple_list)
-        
+
         return tongzi
 
     @staticmethod
@@ -490,34 +508,34 @@ class PlayGenerator:
         """Generate all valid dizha patterns (2 of each suit for same rank)."""
         dizha = []
         rank_groups = PlayGenerator._group_by_rank(hand)
-        
-        for rank, cards in rank_groups.items():
+
+        for _rank, cards in rank_groups.items():
             if len(cards) >= 8:
                 # Group by suit
-                suit_groups = {}
+                suit_groups: dict[Suit, list[Card]] = {}
                 for card in cards:
                     if card.suit not in suit_groups:
                         suit_groups[card.suit] = []
                     suit_groups[card.suit].append(card)
-                
+
                 # Check if all 4 suits have at least 2 cards
-                if all(len(suit_groups.get(suit, [])) >= 2 for suit in [s for s in range(1, 5)]):
+                if all(len(suit_groups.get(suit, [])) >= 2 for suit in Suit):
                     # Take 2 cards from each suit
                     dizha_cards = []
-                    from ..models.card import Suit
+
                     for suit in Suit:
                         dizha_cards.extend(suit_groups[suit][:2])
-                    
+
                     pattern = PatternRecognizer.analyze_cards(dizha_cards)
                     if pattern and pattern.play_type == PlayType.DIZHA:
                         dizha.append(dizha_cards)
-        
+
         return dizha
 
     @staticmethod
     def _group_by_rank(cards: list[Card]) -> dict[Rank, list[Card]]:
         """Group cards by rank."""
-        groups = {}
+        groups: dict[Rank, list[Card]] = {}
         for card in cards:
             if card.rank not in groups:
                 groups[card.rank] = []
@@ -532,14 +550,16 @@ class PlayGenerator:
 
         values = [r.value for r in ranks]
         for i in range(1, len(values)):
-            if values[i] != values[i-1] + 1:
+            if values[i] != values[i - 1] + 1:
                 return False
         return True
 
     # ========== Helper methods for generate_beating_plays_with_same_type_or_trump ==========
 
     @staticmethod
-    def _generate_higher_singles(hand: list[Card], current_pattern: PlayPattern) -> list[list[Card]]:
+    def _generate_higher_singles(
+        hand: list[Card], current_pattern: PlayPattern
+    ) -> list[list[Card]]:
         """Generate single cards higher than current single."""
         higher_singles = []
         current_rank = current_pattern.primary_rank
@@ -551,7 +571,9 @@ class PlayGenerator:
         return higher_singles
 
     @staticmethod
-    def _generate_higher_pairs(hand: list[Card], current_pattern: PlayPattern) -> list[list[Card]]:
+    def _generate_higher_pairs(
+        hand: list[Card], current_pattern: PlayPattern
+    ) -> list[list[Card]]:
         """Generate pairs higher than current pair."""
         all_pairs = PlayGenerator._generate_pairs(hand)
         current_rank = current_pattern.primary_rank
@@ -571,21 +593,25 @@ class PlayGenerator:
         """Generate consecutive pairs higher than current consecutive pairs."""
         all_consecutive = PlayGenerator._generate_consecutive_pairs(hand)
         current_rank = current_pattern.primary_rank
-        current_count = current_pattern.card_count // 2  # Number of pairs
+        current_pattern.card_count // 2  # Number of pairs
 
         higher_consecutive = []
         for consecutive in all_consecutive:
             pattern = PatternRecognizer.analyze_cards(consecutive)
             if pattern:
                 # Must have same number of pairs and higher starting rank
-                if (len(consecutive) == current_pattern.card_count and
-                    pattern.primary_rank.value > current_rank.value):
+                if (
+                    len(consecutive) == current_pattern.card_count
+                    and pattern.primary_rank.value > current_rank.value
+                ):
                     higher_consecutive.append(consecutive)
 
         return higher_consecutive
 
     @staticmethod
-    def _generate_higher_triples(hand: list[Card], current_pattern: PlayPattern) -> list[list[Card]]:
+    def _generate_higher_triples(
+        hand: list[Card], current_pattern: PlayPattern
+    ) -> list[list[Card]]:
         """Generate triples higher than current triple."""
         all_triples = PlayGenerator._generate_triples(hand)
         current_rank = current_pattern.primary_rank
@@ -593,7 +619,10 @@ class PlayGenerator:
         higher_triples = []
         for triple in all_triples:
             triple_pattern = PatternRecognizer.analyze_cards(triple)
-            if triple_pattern and triple_pattern.primary_rank.value > current_rank.value:
+            if (
+                triple_pattern
+                and triple_pattern.primary_rank.value > current_rank.value
+            ):
                 higher_triples.append(triple)
 
         return higher_triples
@@ -621,15 +650,17 @@ class PlayGenerator:
         """Generate airplanes higher than current airplane."""
         all_airplanes = PlayGenerator._generate_airplanes(hand)
         current_rank = current_pattern.primary_rank
-        current_count = current_pattern.card_count // 3  # Number of triples
+        current_pattern.card_count // 3  # Number of triples
 
         higher_airplanes = []
         for airplane in all_airplanes:
             pattern = PatternRecognizer.analyze_cards(airplane)
             if pattern:
                 # Must have same number of triples and higher starting rank
-                if (len(airplane) == current_pattern.card_count and
-                    pattern.primary_rank.value > current_rank.value):
+                if (
+                    len(airplane) == current_pattern.card_count
+                    and pattern.primary_rank.value > current_rank.value
+                ):
                     higher_airplanes.append(airplane)
 
         return higher_airplanes
@@ -647,14 +678,18 @@ class PlayGenerator:
             pattern = PatternRecognizer.analyze_cards(combo)
             if pattern:
                 # Must have same card count and higher starting rank
-                if (len(combo) == current_pattern.card_count and
-                    pattern.primary_rank.value > current_rank.value):
+                if (
+                    len(combo) == current_pattern.card_count
+                    and pattern.primary_rank.value > current_rank.value
+                ):
                     higher_combos.append(combo)
 
         return higher_combos
 
     @staticmethod
-    def _generate_higher_bombs(hand: list[Card], current_pattern: PlayPattern) -> list[list[Card]]:
+    def _generate_higher_bombs(
+        hand: list[Card], current_pattern: PlayPattern
+    ) -> list[list[Card]]:
         """Generate bombs higher than current bomb."""
         all_bombs = PlayGenerator._generate_bombs(hand)
         current_rank = current_pattern.primary_rank
@@ -665,14 +700,18 @@ class PlayGenerator:
             bomb_pattern = PatternRecognizer.analyze_cards(bomb)
             if bomb_pattern:
                 # Higher rank with same size, or more cards with any rank
-                if (len(bomb) > current_size or
-                    (len(bomb) == current_size and bomb_pattern.primary_rank.value > current_rank.value)):
+                if len(bomb) > current_size or (
+                    len(bomb) == current_size
+                    and bomb_pattern.primary_rank.value > current_rank.value
+                ):
                     higher_bombs.append(bomb)
 
         return higher_bombs
 
     @staticmethod
-    def _generate_higher_tongzi(hand: list[Card], current_pattern: PlayPattern) -> list[list[Card]]:
+    def _generate_higher_tongzi(
+        hand: list[Card], current_pattern: PlayPattern
+    ) -> list[list[Card]]:
         """Generate tongzi higher than current tongzi."""
         all_tongzi = PlayGenerator._generate_tongzi(hand)
 
@@ -685,7 +724,9 @@ class PlayGenerator:
         return higher_tongzi
 
     @staticmethod
-    def _generate_higher_dizha(hand: list[Card], current_pattern: PlayPattern) -> list[list[Card]]:
+    def _generate_higher_dizha(
+        hand: list[Card], current_pattern: PlayPattern
+    ) -> list[list[Card]]:
         """Generate dizha higher than current dizha."""
         all_dizha = PlayGenerator._generate_dizha(hand)
         current_rank = current_pattern.primary_rank

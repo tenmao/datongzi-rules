@@ -9,9 +9,6 @@ These tests use the GameSimulator to run complete games and verify:
 """
 
 from datongzi_rules import (
-    Card,
-    Rank,
-    Suit,
     ConfigFactory,
 )
 from datongzi_rules.simulation import GameSimulator, GameState
@@ -128,13 +125,14 @@ def test_finish_bonuses_applied():
 
     # Verify first finisher got positive bonus
     first_finisher = report["finish_order"][0]
-    first_score = report["final_scores"][first_finisher]["score"]
+    report["final_scores"][first_finisher]["score"]
 
     # First finisher should have gotten +100 (or whatever config specifies)
     # We can't check exact score because it includes round wins, but we can
     # verify the finish bonus event exists
     finish_first_events = [
-        e for e in finish_events
+        e
+        for e in finish_events
         if e["player_id"] == first_finisher and "position 1" in e["reason"]
     ]
     assert len(finish_first_events) == 1
@@ -152,8 +150,7 @@ def test_round_winner_gets_points():
 
     # Find logs with round winners
     round_winner_logs = [
-        log for log in report["logs"]
-        if log.get("is_round_winner") is True
+        log for log in report["logs"] if log.get("is_round_winner") is True
     ]
 
     # Should have at least some round winners
@@ -184,7 +181,7 @@ def test_multiple_rounds_played():
     assert report["total_rounds"] > 1
 
     # Verify logs span multiple rounds
-    round_numbers = set(log["round"] for log in report["logs"])
+    round_numbers = {log["round"] for log in report["logs"]}
     assert len(round_numbers) > 1
 
     print("✓ Multiple rounds played test passed")
@@ -203,7 +200,7 @@ def test_game_state_consistency():
     assert len(simulator.state.finished_players) == 0
 
     # Play game
-    report = simulator.play_full_game()
+    simulator.play_full_game()
 
     # Check final state
     assert simulator.state.game_over is True
@@ -216,13 +213,13 @@ def test_game_state_consistency():
 
     # Verify at least one player has cards left (game ended with 1 player remaining)
     unfinished_players = [
-        pid for pid in simulator.state.player_ids
+        pid
+        for pid in simulator.state.player_ids
         if pid not in simulator.state.finished_players
     ]
     if len(unfinished_players) > 0:
         assert all(
-            len(simulator.state.player_hands[pid]) > 0
-            for pid in unfinished_players
+            len(simulator.state.player_hands[pid]) > 0 for pid in unfinished_players
         )
 
     print("✓ Game state consistency test passed")

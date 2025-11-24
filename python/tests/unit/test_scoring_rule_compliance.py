@@ -8,12 +8,12 @@ These tests verify the most important rule from GAME_RULE.md:
 
 from datongzi_rules import (
     Card,
-    Rank,
-    Suit,
     ConfigFactory,
-    ScoreComputation,
     PatternRecognizer,
     PlayType,
+    Rank,
+    ScoreComputation,
+    Suit,
 )
 
 
@@ -41,7 +41,7 @@ def test_tongzi_bonus_only_for_round_winning_play():
         "player_a",
         k_tongzi_pattern,
         round_number=1,
-        is_round_winning_play=False  # NOT the winning play
+        is_round_winning_play=False,  # NOT the winning play
     )
 
     # Player A should get NO bonus
@@ -62,7 +62,7 @@ def test_tongzi_bonus_only_for_round_winning_play():
         "player_b",
         a_tongzi_pattern,
         round_number=1,
-        is_round_winning_play=True  # This IS the winning play
+        is_round_winning_play=True,  # This IS the winning play
     )
 
     # Player B should get 200 points
@@ -96,10 +96,7 @@ def test_dizha_bonus_only_for_round_winning_play():
 
     # NOT the winning play
     events_a = engine.create_special_bonus_events(
-        "player_a",
-        k_dizha_pattern,
-        round_number=1,
-        is_round_winning_play=False
+        "player_a", k_dizha_pattern, round_number=1, is_round_winning_play=False
     )
 
     # Player A should get NO bonus
@@ -122,10 +119,7 @@ def test_dizha_bonus_only_for_round_winning_play():
 
     # This IS the winning play
     events_b = engine.create_special_bonus_events(
-        "player_b",
-        a_dizha_pattern,
-        round_number=1,
-        is_round_winning_play=True
+        "player_b", a_dizha_pattern, round_number=1, is_round_winning_play=True
     )
 
     # Player B should get 400 points
@@ -148,31 +142,29 @@ def test_multiple_tongzi_in_same_round():
     engine = ScoreComputation(config)
 
     # Player A plays K Tongzi (middle of round)
-    k_tongzi = PatternRecognizer.analyze_cards([
-        Card(Suit.SPADES, Rank.KING),
-        Card(Suit.SPADES, Rank.KING),
-        Card(Suit.SPADES, Rank.KING),
-    ])
+    k_tongzi = PatternRecognizer.analyze_cards(
+        [
+            Card(Suit.SPADES, Rank.KING),
+            Card(Suit.SPADES, Rank.KING),
+            Card(Suit.SPADES, Rank.KING),
+        ]
+    )
 
     engine.create_special_bonus_events(
-        "player_a",
-        k_tongzi,
-        round_number=1,
-        is_round_winning_play=False
+        "player_a", k_tongzi, round_number=1, is_round_winning_play=False
     )
 
     # Player B plays A Tongzi (wins round)
-    a_tongzi = PatternRecognizer.analyze_cards([
-        Card(Suit.HEARTS, Rank.ACE),
-        Card(Suit.HEARTS, Rank.ACE),
-        Card(Suit.HEARTS, Rank.ACE),
-    ])
+    a_tongzi = PatternRecognizer.analyze_cards(
+        [
+            Card(Suit.HEARTS, Rank.ACE),
+            Card(Suit.HEARTS, Rank.ACE),
+            Card(Suit.HEARTS, Rank.ACE),
+        ]
+    )
 
     engine.create_special_bonus_events(
-        "player_b",
-        a_tongzi,
-        round_number=1,
-        is_round_winning_play=True
+        "player_b", a_tongzi, round_number=1, is_round_winning_play=True
     )
 
     # Verify scores
@@ -180,9 +172,7 @@ def test_multiple_tongzi_in_same_round():
     assert engine.calculate_total_score_for_player("player_b") == 200
 
     # Player B should have only one event
-    player_b_events = [
-        e for e in engine.scoring_events if e.player_id == "player_b"
-    ]
+    player_b_events = [e for e in engine.scoring_events if e.player_id == "player_b"]
     assert len(player_b_events) == 1
     assert player_b_events[0].points == 200
 
@@ -198,16 +188,18 @@ def test_backward_compatibility_default_true():
     engine = ScoreComputation(config)
 
     # Call without is_round_winning_play parameter (should default to True)
-    tongzi = PatternRecognizer.analyze_cards([
-        Card(Suit.SPADES, Rank.ACE),
-        Card(Suit.SPADES, Rank.ACE),
-        Card(Suit.SPADES, Rank.ACE),
-    ])
+    tongzi = PatternRecognizer.analyze_cards(
+        [
+            Card(Suit.SPADES, Rank.ACE),
+            Card(Suit.SPADES, Rank.ACE),
+            Card(Suit.SPADES, Rank.ACE),
+        ]
+    )
 
     events = engine.create_special_bonus_events(
         "player_a",
         tongzi,
-        round_number=1
+        round_number=1,
         # is_round_winning_play not specified - should default to True
     )
 
@@ -224,11 +216,13 @@ def test_all_tongzi_ranks():
     engine = ScoreComputation(config)
 
     # K Tongzi = 100
-    k_tongzi = PatternRecognizer.analyze_cards([
-        Card(Suit.DIAMONDS, Rank.KING),
-        Card(Suit.DIAMONDS, Rank.KING),
-        Card(Suit.DIAMONDS, Rank.KING),
-    ])
+    k_tongzi = PatternRecognizer.analyze_cards(
+        [
+            Card(Suit.DIAMONDS, Rank.KING),
+            Card(Suit.DIAMONDS, Rank.KING),
+            Card(Suit.DIAMONDS, Rank.KING),
+        ]
+    )
     events_k = engine.create_special_bonus_events(
         "player1", k_tongzi, 1, is_round_winning_play=True
     )
@@ -236,11 +230,13 @@ def test_all_tongzi_ranks():
     assert events_k[0].points == 100
 
     # A Tongzi = 200
-    a_tongzi = PatternRecognizer.analyze_cards([
-        Card(Suit.CLUBS, Rank.ACE),
-        Card(Suit.CLUBS, Rank.ACE),
-        Card(Suit.CLUBS, Rank.ACE),
-    ])
+    a_tongzi = PatternRecognizer.analyze_cards(
+        [
+            Card(Suit.CLUBS, Rank.ACE),
+            Card(Suit.CLUBS, Rank.ACE),
+            Card(Suit.CLUBS, Rank.ACE),
+        ]
+    )
     events_a = engine.create_special_bonus_events(
         "player2", a_tongzi, 2, is_round_winning_play=True
     )
@@ -248,11 +244,13 @@ def test_all_tongzi_ranks():
     assert events_a[0].points == 200
 
     # 2 Tongzi = 300
-    two_tongzi = PatternRecognizer.analyze_cards([
-        Card(Suit.HEARTS, Rank.TWO),
-        Card(Suit.HEARTS, Rank.TWO),
-        Card(Suit.HEARTS, Rank.TWO),
-    ])
+    two_tongzi = PatternRecognizer.analyze_cards(
+        [
+            Card(Suit.HEARTS, Rank.TWO),
+            Card(Suit.HEARTS, Rank.TWO),
+            Card(Suit.HEARTS, Rank.TWO),
+        ]
+    )
     events_two = engine.create_special_bonus_events(
         "player3", two_tongzi, 3, is_round_winning_play=True
     )
@@ -276,12 +274,14 @@ def test_non_special_patterns_not_affected():
     engine = ScoreComputation(config)
 
     # Regular bomb should not create special bonus events
-    bomb = PatternRecognizer.analyze_cards([
-        Card(Suit.SPADES, Rank.KING),
-        Card(Suit.HEARTS, Rank.KING),
-        Card(Suit.CLUBS, Rank.KING),
-        Card(Suit.DIAMONDS, Rank.KING),
-    ])
+    bomb = PatternRecognizer.analyze_cards(
+        [
+            Card(Suit.SPADES, Rank.KING),
+            Card(Suit.HEARTS, Rank.KING),
+            Card(Suit.CLUBS, Rank.KING),
+            Card(Suit.DIAMONDS, Rank.KING),
+        ]
+    )
     assert bomb.play_type == PlayType.BOMB
 
     # Should return empty list regardless of is_round_winning_play

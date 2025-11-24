@@ -1,7 +1,8 @@
 """Unit tests for models (Card, Deck, GameConfig)."""
 
 import pytest
-from datongzi_rules import Card, Rank, Suit, Deck, GameConfig
+
+from datongzi_rules import Card, Deck, GameConfig, Rank, Suit
 
 
 def test_deck_creation():
@@ -91,10 +92,10 @@ def test_card_equality():
     card1 = Card(Suit.SPADES, Rank.ACE)
     card2 = Card(Suit.SPADES, Rank.ACE)
     card3 = Card(Suit.HEARTS, Rank.ACE)
-    
+
     assert card1 == card2
     assert card1 != card3
-    
+
     print("✓ Card equality test passed")
 
 
@@ -103,10 +104,10 @@ def test_card_ordering():
     ace = Card(Suit.SPADES, Rank.ACE)
     king = Card(Suit.SPADES, Rank.KING)
     two = Card(Suit.SPADES, Rank.TWO)
-    
+
     # TWO (15) > ACE (14) > KING (13)
     assert two > ace > king
-    
+
     print("✓ Card ordering test passed")
 
 
@@ -208,13 +209,13 @@ def test_deck_deal_from_empty():
 def test_game_config_default():
     """Test default game configuration."""
     config = GameConfig()
-    
+
     assert config.num_decks == 3
     assert config.num_players == 3
     assert config.cards_dealt_aside == 9
     assert config.finish_bonus == [100, -40, -60]
     assert config.must_beat_rule is True
-    
+
     print("✓ Game config default test passed")
 
 
@@ -226,15 +227,15 @@ def test_game_config_custom():
         cards_dealt_aside=8,
         k_tongzi_bonus=150,
     )
-    
+
     assert config.num_decks == 2
     assert config.num_players == 4
     assert config.k_tongzi_bonus == 150
-    
+
     # finish_bonus should auto-adjust for 4 players
     assert len(config.finish_bonus) == 4
     assert config.finish_bonus[0] == 100  # First place always +100
-    
+
     print("✓ Game config custom test passed")
 
 
@@ -242,7 +243,7 @@ def test_game_config_validation_players():
     """Test game config validation for player count."""
     with pytest.raises(ValueError, match="Must have at least 2 players"):
         GameConfig(num_players=1)
-    
+
     print("✓ Game config player validation test passed")
 
 
@@ -250,37 +251,37 @@ def test_game_config_validation_decks():
     """Test game config validation for deck count."""
     with pytest.raises(ValueError, match="Must have at least 1 deck"):
         GameConfig(num_decks=0)
-    
+
     print("✓ Game config deck validation test passed")
 
 
 def test_game_config_total_cards():
     """Test total cards calculation."""
     config = GameConfig(num_decks=3, excluded_ranks=set())
-    
+
     # 3 decks * 11 ranks * 4 suits = 132 cards
     assert config.total_cards == 132
-    
+
     print("✓ Game config total cards test passed")
 
 
 def test_game_config_cards_per_player():
     """Test cards per player calculation."""
     config = GameConfig(num_decks=3, num_players=3, cards_dealt_aside=9)
-    
+
     # (132 - 9) / 3 = 41 cards per player
     assert config.cards_per_player == 41
-    
+
     print("✓ Game config cards per player test passed")
 
 
 def test_game_config_two_players():
     """Test game config for 2 players."""
     config = GameConfig(num_players=2)
-    
+
     # 2 players should have finish_bonus = [100, -100]
     assert config.finish_bonus == [100, -100]
-    
+
     print("✓ Game config two players test passed")
 
 
@@ -332,15 +333,15 @@ def test_card_from_string_all_ranks():
 def test_card_from_string_invalid_inputs():
     """Test card string parsing with invalid inputs."""
     invalid_inputs = [
-        "",           # Empty string
-        "A",          # No suit
-        "♠",          # No rank
-        "XA",         # Invalid suit
-        "♠X",         # Invalid rank
-        "♠3",         # Excluded rank
-        "♠4",         # Excluded rank
-        "♠11",        # Invalid rank
-        "♠♠A",        # Too many characters
+        "",  # Empty string
+        "A",  # No suit
+        "♠",  # No rank
+        "XA",  # Invalid suit
+        "♠X",  # Invalid rank
+        "♠3",  # Excluded rank
+        "♠4",  # Excluded rank
+        "♠11",  # Invalid rank
+        "♠♠A",  # Too many characters
     ]
 
     for invalid_input in invalid_inputs:

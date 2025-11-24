@@ -1,7 +1,6 @@
 """Unit tests for HandPatternAnalyzer."""
 
-import pytest
-from datongzi_rules import Card, Rank, Suit, HandPatternAnalyzer, HandPatterns
+from datongzi_rules import Card, HandPatternAnalyzer, Rank, Suit
 
 
 def test_analyze_empty_hand():
@@ -201,14 +200,14 @@ def test_non_overlapping_structure_analysis():
 
     # Verify total cards match
     total_in_resources = (
-        sum(len(d) for d in resources.dizha) +
-        sum(len(t) for t in resources.tongzi) +
-        sum(len(b) for b in resources.bombs) +
-        sum(len(a) for a in resources.airplane_chains) +
-        sum(len(c) for c in resources.consecutive_pair_chains) +
-        sum(len(t) for t in resources.triples) +
-        sum(len(p) for p in resources.pairs) +
-        len(resources.singles)
+        sum(len(d) for d in resources.dizha)
+        + sum(len(t) for t in resources.tongzi)
+        + sum(len(b) for b in resources.bombs)
+        + sum(len(a) for a in resources.airplane_chains)
+        + sum(len(c) for c in resources.consecutive_pair_chains)
+        + sum(len(t) for t in resources.triples)
+        + sum(len(p) for p in resources.pairs)
+        + len(resources.singles)
     )
     assert total_in_resources == resources.total_cards
 

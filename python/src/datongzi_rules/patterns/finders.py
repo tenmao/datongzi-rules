@@ -4,7 +4,6 @@ This module provides utilities to find all valid card combinations in a player's
 All methods are extracted from AI logic to be reusable across different implementations.
 """
 
-from collections import Counter
 from itertools import combinations
 
 from ..models.card import Card, Rank, Suit
@@ -232,7 +231,7 @@ class PatternFinder:
         all_tongzi = []
 
         # Check each rank for tongzi
-        for rank, cards in rank_counts.items():
+        for _rank, cards in rank_counts.items():
             if len(cards) >= 3:
                 # Group by suit
                 suit_groups: dict[Suit, list[Card]] = {}
@@ -242,7 +241,7 @@ class PatternFinder:
                     suit_groups[card.suit].append(card)
 
                 # Check each suit group for tongzi
-                for suit, suit_cards in suit_groups.items():
+                for _suit, suit_cards in suit_groups.items():
                     if len(suit_cards) >= 3:
                         all_tongzi.append(suit_cards[:3])
 
@@ -364,14 +363,15 @@ class PatternFinder:
         for i in range(len(sorted_ranks) - 1):
             if sorted_ranks[i].value + 1 == sorted_ranks[i + 1].value:
                 # Found consecutive triples
-                return triples_by_rank[sorted_ranks[i]] + triples_by_rank[sorted_ranks[i + 1]]
+                return (
+                    triples_by_rank[sorted_ranks[i]]
+                    + triples_by_rank[sorted_ranks[i + 1]]
+                )
 
         return None
 
     @staticmethod
-    def find_all_airplanes(
-        hand: list[Card], num_triples: int
-    ) -> list[list[Card]]:
+    def find_all_airplanes(hand: list[Card], num_triples: int) -> list[list[Card]]:
         """Find all airplane combinations of given length.
 
         Args:
@@ -445,7 +445,7 @@ class PatternFinder:
 
         # Need to find num_triples pairs for wings
         # Get the ranks used in airplane
-        airplane_ranks = set(card.rank for card in airplane)
+        airplane_ranks = {card.rank for card in airplane}
 
         # Find available pairs (can be from airplane ranks if we have extras)
         rank_counts: dict[Rank, list[Card]] = {}
@@ -513,7 +513,7 @@ class PatternFinder:
 
         for airplane in all_airplanes:
             # Get ranks used in this airplane
-            airplane_ranks = set(card.rank for card in airplane)
+            airplane_ranks = {card.rank for card in airplane}
 
             # Find available pairs for wings
             rank_counts: dict[Rank, list[Card]] = {}

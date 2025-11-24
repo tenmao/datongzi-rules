@@ -1,9 +1,9 @@
 """Scoring rules and calculations for Da Tong Zi game - Zero Dependency Version."""
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
-import logging
 
 from ..models.card import Card, Rank
 from ..models.config import GameConfig
@@ -118,7 +118,7 @@ class ScoreComputation:
         player_id: str,
         winning_pattern: PlayPattern,
         round_number: int,
-        is_round_winning_play: bool = True
+        is_round_winning_play: bool = True,
     ) -> list[ScoringEvent]:
         """
         Create scoring events for special bonuses (Tongzi, Dizha).
@@ -138,7 +138,7 @@ class ScoreComputation:
         Returns:
             List of ScoringEvents for bonuses (empty if not round winning play)
         """
-        events = []
+        events: list[ScoringEvent] = []
 
         # Only award special bonuses if this is the round winning play
         if not is_round_winning_play:
@@ -264,7 +264,9 @@ class ScoreComputation:
             Total score from all events
         """
         return sum(
-            event.points for event in self.scoring_events if event.player_id == player_id
+            event.points
+            for event in self.scoring_events
+            if event.player_id == player_id
         )
 
     def get_game_summary(self, player_ids: list[str]) -> dict[str, Any]:
@@ -284,9 +286,11 @@ class ScoreComputation:
 
         summary: dict[str, Any] = {
             "final_scores": final_scores,
-            "winner_id": max(final_scores.items(), key=lambda x: x[1])[0]
-            if final_scores
-            else None,
+            "winner_id": (
+                max(final_scores.items(), key=lambda x: x[1])[0]
+                if final_scores
+                else None
+            ),
             "total_events": len(self.scoring_events),
             "events_by_type": {},
             "events_by_player": {},
@@ -309,9 +313,7 @@ class ScoreComputation:
 
         # Group events by player
         for player_id in player_ids:
-            player_events = [
-                e for e in self.scoring_events if e.player_id == player_id
-            ]
+            player_events = [e for e in self.scoring_events if e.player_id == player_id]
             summary["events_by_player"][player_id] = {
                 "total_score": final_scores[player_id],
                 "events": [

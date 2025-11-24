@@ -1,8 +1,8 @@
 """Hand pattern analysis for AI decision making - Zero Dependency Version."""
 
+import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-import logging
 
 from ..models.card import Card, Rank
 from ..patterns.recognizer import PatternRecognizer, PlayType
@@ -134,7 +134,9 @@ class HandPatternAnalyzer:
         HandPatternAnalyzer._extract_singles(remaining_cards, patterns)
 
         # Step 7: Calculate metadata
-        patterns.trump_count = len(patterns.dizha) + len(patterns.tongzi) + len(patterns.bombs)
+        patterns.trump_count = (
+            len(patterns.dizha) + len(patterns.tongzi) + len(patterns.bombs)
+        )
         patterns.has_control_cards = any(
             c.rank in [Rank.TWO, Rank.ACE, Rank.KING] for c in hand
         )
@@ -150,7 +152,9 @@ class HandPatternAnalyzer:
         return patterns
 
     @staticmethod
-    def _extract_trump_cards(remaining_cards: list[Card], patterns: HandPatterns) -> None:
+    def _extract_trump_cards(
+        remaining_cards: list[Card], patterns: HandPatterns
+    ) -> None:
         """Extract dizha, tongzi, and bombs."""
         # Extract dizha (highest priority trump)
         dizha_list = HandPatternAnalyzer._find_dizha(remaining_cards)
@@ -175,11 +179,15 @@ class HandPatternAnalyzer:
 
         # Sort by strength (descending)
         patterns.dizha.sort(key=lambda x: x[0].rank.value, reverse=True)
-        patterns.tongzi.sort(key=lambda x: (x[0].suit.value, x[0].rank.value), reverse=True)
+        patterns.tongzi.sort(
+            key=lambda x: (x[0].suit.value, x[0].rank.value), reverse=True
+        )
         patterns.bombs.sort(key=lambda x: (len(x), x[0].rank.value), reverse=True)
 
     @staticmethod
-    def _extract_airplane_chains(remaining_cards: list[Card], patterns: HandPatterns) -> None:
+    def _extract_airplane_chains(
+        remaining_cards: list[Card], patterns: HandPatterns
+    ) -> None:
         """Extract airplane chains (consecutive triples)."""
         airplane_chains = HandPatternAnalyzer._find_airplane_chains(remaining_cards)
         for chain in airplane_chains:
@@ -205,9 +213,13 @@ class HandPatternAnalyzer:
         patterns.triples.sort(key=lambda x: x[0].rank.value, reverse=True)
 
     @staticmethod
-    def _extract_consecutive_pair_chains(remaining_cards: list[Card], patterns: HandPatterns) -> None:
+    def _extract_consecutive_pair_chains(
+        remaining_cards: list[Card], patterns: HandPatterns
+    ) -> None:
         """Extract consecutive pair chains (after triples extracted)."""
-        consec_pair_chains = HandPatternAnalyzer._find_consecutive_pair_chains(remaining_cards)
+        consec_pair_chains = HandPatternAnalyzer._find_consecutive_pair_chains(
+            remaining_cards
+        )
         for chain in consec_pair_chains:
             patterns.consecutive_pair_chains.append(chain)
             for card in chain:
@@ -239,7 +251,9 @@ class HandPatternAnalyzer:
     def _extract_singles(remaining_cards: list[Card], patterns: HandPatterns) -> None:
         """Extract singles from remaining cards."""
         # All remaining cards are singles
-        patterns.singles = sorted(remaining_cards, key=lambda c: c.rank.value, reverse=True)
+        patterns.singles = sorted(
+            remaining_cards, key=lambda c: c.rank.value, reverse=True
+        )
         remaining_cards.clear()
 
     @staticmethod
@@ -250,7 +264,7 @@ class HandPatternAnalyzer:
             rank_groups[card.rank].append(card)
 
         dizha_list = []
-        for rank, rank_cards in rank_groups.items():
+        for _rank, rank_cards in rank_groups.items():
             if len(rank_cards) < 8:
                 continue
 
@@ -261,6 +275,7 @@ class HandPatternAnalyzer:
 
             # Check if all 4 suits have at least 2 cards
             from ..models.card import Suit
+
             if all(len(suit_groups.get(suit, [])) >= 2 for suit in Suit):
                 dizha = []
                 for suit in Suit:
@@ -282,7 +297,7 @@ class HandPatternAnalyzer:
             suit_rank_groups[key].append(card)
 
         tongzi_list = []
-        for (suit, rank), group_cards in suit_rank_groups.items():
+        for (_suit, _rank), group_cards in suit_rank_groups.items():
             if len(group_cards) >= 3:
                 tongzi = group_cards[:3]
                 pattern = PatternRecognizer.analyze_cards(tongzi)
@@ -299,10 +314,10 @@ class HandPatternAnalyzer:
             rank_groups[card.rank].append(card)
 
         bombs_list = []
-        for rank, rank_cards in rank_groups.items():
+        for _rank, rank_cards in rank_groups.items():
             if len(rank_cards) >= 4:
                 # Take the largest possible bomb
-                bomb = rank_cards[:len(rank_cards)]
+                bomb = rank_cards[: len(rank_cards)]
                 pattern = PatternRecognizer.analyze_cards(bomb)
                 if pattern and pattern.play_type == PlayType.BOMB:
                     bombs_list.append(bomb)
@@ -317,7 +332,7 @@ class HandPatternAnalyzer:
             rank_groups[card.rank].append(card)
 
         triples_list = []
-        for rank, rank_cards in rank_groups.items():
+        for _rank, rank_cards in rank_groups.items():
             if len(rank_cards) >= 3:
                 triple = rank_cards[:3]
                 pattern = PatternRecognizer.analyze_cards(triple)

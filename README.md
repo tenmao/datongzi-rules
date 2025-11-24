@@ -2,9 +2,9 @@
 
 零依赖的打筒子游戏规则引擎库 - **Python + Rust 双语言实现**
 
-[![Rust CI](https://github.com/yourusername/datongzi-rules/workflows/Rust%20CI/badge.svg)](https://github.com/yourusername/datongzi-rules/actions)
-[![Python CI](https://github.com/yourusername/datongzi-rules/workflows/Python%20CI/badge.svg)](https://github.com/yourusername/datongzi-rules/actions)
-[![Cross-Language Tests](https://github.com/yourusername/datongzi-rules/workflows/Cross-Language%20Consistency%20Tests/badge.svg)](https://github.com/yourusername/datongzi-rules/actions)
+![Rust CI](https://github.com/tenmao/datongzi-rules/workflows/Rust%20CI/badge.svg)
+![Python CI](https://github.com/tenmao/datongzi-rules/workflows/Python%20CI/badge.svg)
+[![Cross-Language Consistency Tests](https://github.com/tenmao/datongzi-rules/actions/workflows/cross-language-tests.yml/badge.svg)](https://github.com/tenmao/datongzi-rules/actions/workflows/cross-language-tests.yml)
 
 ---
 
