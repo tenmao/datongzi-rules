@@ -2,8 +2,8 @@
 
 use std::collections::HashMap;
 
-use crate::models::{Card, Rank, Suit};
 use super::{PlayPattern, PlayType};
+use crate::models::{Card, Rank, Suit};
 
 /// Recognizes and analyzes card patterns.
 pub struct PatternRecognizer;
@@ -197,9 +197,10 @@ impl PatternRecognizer {
         }
 
         // Find the triple rank
-        let triple_rank = rank_counts
-            .iter()
-            .find_map(|(&rank, &count)| if count == 3 { Some(rank) } else { None })?;
+        let triple_rank =
+            rank_counts
+                .iter()
+                .find_map(|(&rank, &count)| if count == 3 { Some(rank) } else { None })?;
 
         Some(PlayPattern::new(
             PlayType::TripleWithTwo,
@@ -610,7 +611,11 @@ impl PlayValidator {
                 return false; // Tongzi can only beat Bomb or other Tongzi
             }
             // Tongzi vs Tongzi: compare by rank, then by suit
-            match new_pattern.primary_rank.value().cmp(&current_pattern.primary_rank.value()) {
+            match new_pattern
+                .primary_rank
+                .value()
+                .cmp(&current_pattern.primary_rank.value())
+            {
                 Ordering::Greater => return true,
                 Ordering::Equal => {
                     // Both suits must not be None for comparison
@@ -635,7 +640,11 @@ impl PlayValidator {
                 return true; // Bomb beats non-bomb
             }
             // Bomb vs Bomb: compare by rank first, then count
-            match new_pattern.primary_rank.value().cmp(&current_pattern.primary_rank.value()) {
+            match new_pattern
+                .primary_rank
+                .value()
+                .cmp(&current_pattern.primary_rank.value())
+            {
                 Ordering::Greater => return true,
                 Ordering::Equal => return new_pattern.card_count > current_pattern.card_count,
                 Ordering::Less => return false,
@@ -695,8 +704,10 @@ mod validator_tests {
     #[test]
     fn test_bomb_beats_normal() {
         // Bomb beats normal pair
-        let normal_pattern = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::Ace),
-            Card::new(Suit::Hearts, Rank::Ace)])
+        let normal_pattern = PatternRecognizer::analyze_cards(&[
+            Card::new(Suit::Spades, Rank::Ace),
+            Card::new(Suit::Hearts, Rank::Ace),
+        ])
         .unwrap();
 
         let bomb_cards = vec![
@@ -706,7 +717,10 @@ mod validator_tests {
             Card::new(Suit::Diamonds, Rank::King),
         ];
 
-        assert!(PlayValidator::can_beat_play(&bomb_cards, Some(&normal_pattern)));
+        assert!(PlayValidator::can_beat_play(
+            &bomb_cards,
+            Some(&normal_pattern)
+        ));
 
         // Normal pair cannot beat bomb
         let bomb_pattern = PatternRecognizer::analyze_cards(&bomb_cards).unwrap();
@@ -715,16 +729,21 @@ mod validator_tests {
             Card::new(Suit::Hearts, Rank::Ace),
         ];
 
-        assert!(!PlayValidator::can_beat_play(&normal_cards, Some(&bomb_pattern)));
+        assert!(!PlayValidator::can_beat_play(
+            &normal_cards,
+            Some(&bomb_pattern)
+        ));
     }
 
     #[test]
     fn test_tongzi_beats_bomb() {
         // Bomb pattern
-        let bomb_pattern = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::King),
+        let bomb_pattern = PatternRecognizer::analyze_cards(&[
+            Card::new(Suit::Spades, Rank::King),
             Card::new(Suit::Hearts, Rank::King),
             Card::new(Suit::Clubs, Rank::King),
-            Card::new(Suit::Diamonds, Rank::King)])
+            Card::new(Suit::Diamonds, Rank::King),
+        ])
         .unwrap();
 
         // Tongzi (same suit three of a kind)
@@ -734,7 +753,10 @@ mod validator_tests {
             Card::new(Suit::Spades, Rank::Three),
         ];
 
-        assert!(PlayValidator::can_beat_play(&tongzi_cards, Some(&bomb_pattern)));
+        assert!(PlayValidator::can_beat_play(
+            &tongzi_cards,
+            Some(&bomb_pattern)
+        ));
 
         // Bomb cannot beat Tongzi
         let tongzi_pattern = PatternRecognizer::analyze_cards(&tongzi_cards).unwrap();
@@ -745,7 +767,10 @@ mod validator_tests {
             Card::new(Suit::Diamonds, Rank::Ace),
         ];
 
-        assert!(!PlayValidator::can_beat_play(&bomb_cards, Some(&tongzi_pattern)));
+        assert!(!PlayValidator::can_beat_play(
+            &bomb_cards,
+            Some(&tongzi_pattern)
+        ));
     }
 
     #[test]
@@ -763,34 +788,49 @@ mod validator_tests {
         ];
 
         // Dizha beats bomb
-        let bomb_pattern = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::Ace),
+        let bomb_pattern = PatternRecognizer::analyze_cards(&[
+            Card::new(Suit::Spades, Rank::Ace),
             Card::new(Suit::Hearts, Rank::Ace),
             Card::new(Suit::Clubs, Rank::Ace),
-            Card::new(Suit::Diamonds, Rank::Ace)])
+            Card::new(Suit::Diamonds, Rank::Ace),
+        ])
         .unwrap();
 
-        assert!(PlayValidator::can_beat_play(&dizha_cards, Some(&bomb_pattern)));
+        assert!(PlayValidator::can_beat_play(
+            &dizha_cards,
+            Some(&bomb_pattern)
+        ));
 
         // Dizha beats tongzi
-        let tongzi_pattern = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::King),
+        let tongzi_pattern = PatternRecognizer::analyze_cards(&[
             Card::new(Suit::Spades, Rank::King),
-            Card::new(Suit::Spades, Rank::King)])
+            Card::new(Suit::Spades, Rank::King),
+            Card::new(Suit::Spades, Rank::King),
+        ])
         .unwrap();
 
-        assert!(PlayValidator::can_beat_play(&dizha_cards, Some(&tongzi_pattern)));
+        assert!(PlayValidator::can_beat_play(
+            &dizha_cards,
+            Some(&tongzi_pattern)
+        ));
 
         // Higher dizha beats lower dizha
-        let lower_dizha = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::Three),
+        let lower_dizha = PatternRecognizer::analyze_cards(&[
+            Card::new(Suit::Spades, Rank::Three),
             Card::new(Suit::Spades, Rank::Three),
             Card::new(Suit::Hearts, Rank::Three),
             Card::new(Suit::Hearts, Rank::Three),
             Card::new(Suit::Clubs, Rank::Three),
             Card::new(Suit::Clubs, Rank::Three),
             Card::new(Suit::Diamonds, Rank::Three),
-            Card::new(Suit::Diamonds, Rank::Three)])
+            Card::new(Suit::Diamonds, Rank::Three),
+        ])
         .unwrap();
 
-        assert!(PlayValidator::can_beat_play(&dizha_cards, Some(&lower_dizha)));
+        assert!(PlayValidator::can_beat_play(
+            &dizha_cards,
+            Some(&lower_dizha)
+        ));
 
         // Lower dizha cannot beat higher dizha
         let dizha_pattern = PatternRecognizer::analyze_cards(&dizha_cards).unwrap();
@@ -814,8 +854,10 @@ mod validator_tests {
     #[test]
     fn test_same_type_comparison() {
         // Pair vs Pair: higher rank wins
-        let lower_pair = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::Three),
-            Card::new(Suit::Hearts, Rank::Three)])
+        let lower_pair = PatternRecognizer::analyze_cards(&[
+            Card::new(Suit::Spades, Rank::Three),
+            Card::new(Suit::Hearts, Rank::Three),
+        ])
         .unwrap();
 
         let higher_pair_cards = vec![
@@ -823,7 +865,10 @@ mod validator_tests {
             Card::new(Suit::Hearts, Rank::King),
         ];
 
-        assert!(PlayValidator::can_beat_play(&higher_pair_cards, Some(&lower_pair)));
+        assert!(PlayValidator::can_beat_play(
+            &higher_pair_cards,
+            Some(&lower_pair)
+        ));
 
         // Lower pair cannot beat higher pair
         let higher_pair = PatternRecognizer::analyze_cards(&higher_pair_cards).unwrap();
@@ -832,7 +877,10 @@ mod validator_tests {
             Card::new(Suit::Hearts, Rank::Three),
         ];
 
-        assert!(!PlayValidator::can_beat_play(&lower_pair_cards, Some(&higher_pair)));
+        assert!(!PlayValidator::can_beat_play(
+            &lower_pair_cards,
+            Some(&higher_pair)
+        ));
 
         // Different types cannot beat each other (except special rules)
         let triple_cards = vec![
@@ -841,16 +889,21 @@ mod validator_tests {
             Card::new(Suit::Clubs, Rank::Ace),
         ];
 
-        assert!(!PlayValidator::can_beat_play(&triple_cards, Some(&lower_pair)));
+        assert!(!PlayValidator::can_beat_play(
+            &triple_cards,
+            Some(&lower_pair)
+        ));
     }
 
     #[test]
     fn test_consecutive_pairs_same_length() {
         // 2 consecutive pairs
-        let two_pairs = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::Three),
+        let two_pairs = PatternRecognizer::analyze_cards(&[
+            Card::new(Suit::Spades, Rank::Three),
             Card::new(Suit::Hearts, Rank::Three),
             Card::new(Suit::Spades, Rank::Four),
-            Card::new(Suit::Hearts, Rank::Four)])
+            Card::new(Suit::Hearts, Rank::Four),
+        ])
         .unwrap();
 
         // 3 consecutive pairs cannot beat 2 consecutive pairs
@@ -863,7 +916,10 @@ mod validator_tests {
             Card::new(Suit::Hearts, Rank::Seven),
         ];
 
-        assert!(!PlayValidator::can_beat_play(&three_pairs_cards, Some(&two_pairs)));
+        assert!(!PlayValidator::can_beat_play(
+            &three_pairs_cards,
+            Some(&two_pairs)
+        ));
 
         // Higher 2 consecutive pairs can beat lower 2 consecutive pairs
         let higher_two_pairs_cards = vec![
@@ -873,16 +929,21 @@ mod validator_tests {
             Card::new(Suit::Hearts, Rank::Six),
         ];
 
-        assert!(PlayValidator::can_beat_play(&higher_two_pairs_cards, Some(&two_pairs)));
+        assert!(PlayValidator::can_beat_play(
+            &higher_two_pairs_cards,
+            Some(&two_pairs)
+        ));
     }
 
     #[test]
     fn test_bomb_vs_bomb_comparison() {
         // 4-card bomb (Three)
-        let four_bomb_three = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::Three),
+        let four_bomb_three = PatternRecognizer::analyze_cards(&[
+            Card::new(Suit::Spades, Rank::Three),
             Card::new(Suit::Hearts, Rank::Three),
             Card::new(Suit::Clubs, Rank::Three),
-            Card::new(Suit::Diamonds, Rank::Three)])
+            Card::new(Suit::Diamonds, Rank::Three),
+        ])
         .unwrap();
 
         // 4-card bomb (Ace) beats 4-card bomb (Three) due to rank
@@ -893,7 +954,10 @@ mod validator_tests {
             Card::new(Suit::Diamonds, Rank::Ace),
         ];
 
-        assert!(PlayValidator::can_beat_play(&four_bomb_ace_cards, Some(&four_bomb_three)));
+        assert!(PlayValidator::can_beat_play(
+            &four_bomb_ace_cards,
+            Some(&four_bomb_three)
+        ));
 
         // Lower rank bomb cannot beat higher rank bomb (same count)
         let four_bomb_ace = PatternRecognizer::analyze_cards(&four_bomb_ace_cards).unwrap();
@@ -904,7 +968,10 @@ mod validator_tests {
             Card::new(Suit::Diamonds, Rank::Three),
         ];
 
-        assert!(!PlayValidator::can_beat_play(&four_bomb_three_cards, Some(&four_bomb_ace)));
+        assert!(!PlayValidator::can_beat_play(
+            &four_bomb_three_cards,
+            Some(&four_bomb_ace)
+        ));
 
         // Note: In a multi-deck game, 5+ card bombs can exist and beat 4-card bombs
         // But for standard single deck, we only test 4-card bombs
@@ -913,9 +980,11 @@ mod validator_tests {
     #[test]
     fn test_tongzi_vs_tongzi_comparison() {
         // Tongzi (Spades, Three)
-        let tongzi_spades_three = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::Three),
+        let tongzi_spades_three = PatternRecognizer::analyze_cards(&[
             Card::new(Suit::Spades, Rank::Three),
-            Card::new(Suit::Spades, Rank::Three)])
+            Card::new(Suit::Spades, Rank::Three),
+            Card::new(Suit::Spades, Rank::Three),
+        ])
         .unwrap();
 
         // Higher rank tongzi beats lower rank
@@ -925,12 +994,17 @@ mod validator_tests {
             Card::new(Suit::Hearts, Rank::King),
         ];
 
-        assert!(PlayValidator::can_beat_play(&tongzi_king_cards, Some(&tongzi_spades_three)));
+        assert!(PlayValidator::can_beat_play(
+            &tongzi_king_cards,
+            Some(&tongzi_spades_three)
+        ));
 
         // Same rank: higher suit wins (Spades > Hearts)
-        let tongzi_spades_king = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::King),
+        let tongzi_spades_king = PatternRecognizer::analyze_cards(&[
             Card::new(Suit::Spades, Rank::King),
-            Card::new(Suit::Spades, Rank::King)])
+            Card::new(Suit::Spades, Rank::King),
+            Card::new(Suit::Spades, Rank::King),
+        ])
         .unwrap();
 
         let tongzi_hearts_king_cards = vec![

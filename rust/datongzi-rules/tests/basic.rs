@@ -53,7 +53,7 @@ fn test_game_config_default() {
 
 #[test]
 fn test_game_config_custom() {
-    let config = GameConfig::new(3, 3, 44, 0);
+    let config = GameConfig::new(3, 3, 44, 0, vec![100, -40, -60], 100, 200, 300, 400);
     assert!(config.validate().is_ok());
     assert_eq!(config.num_decks(), 3);
     assert_eq!(config.num_players(), 3);

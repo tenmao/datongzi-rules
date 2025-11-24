@@ -35,6 +35,8 @@ pub mod variants;
 // Re-export commonly used types
 pub use error::{DatongziError, Result};
 pub use models::{Card, Deck, GameConfig, Rank, Suit};
+pub use patterns::{PlayPattern, PlayType};
+pub use scoring::{BonusType, GameSummary, ScoreComputation, ScoringEvent};
 
 /// Library version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
