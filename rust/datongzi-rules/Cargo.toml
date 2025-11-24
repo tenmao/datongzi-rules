@@ -17,8 +17,8 @@ thiserror = { workspace = true }
 rand = { workspace = true }
 
 [dev-dependencies]
-criterion = { workspace = true }
-proptest = { workspace = true }
+# criterion = { workspace = true }  # Phase 2+: Re-enable when benchmarks are implemented
+# proptest = { workspace = true }  # Phase 2+: Re-enable when property testing is needed
 
 [features]
 default = []
