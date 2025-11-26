@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`datongzi-rules` 是"打筒子"游戏的权威规则引擎库，零依赖纯 Python 实现。
+`datongzi-rules` 是"打筒子"游戏的权威规则引擎库，零依赖 Rust 实现。
 
 **核心职责**：
 - 提供牌型识别、出牌验证、计分逻辑、AI 辅助工具等核心规则 API
@@ -10,27 +10,24 @@
 - 作为独立子模块，不包含游戏状态管理、UI、AI 策略
 
 **设计目标**：
-- 零依赖（仅使用 Python 3.12+ 标准库）
-- 高性能（牌型识别 ~150K ops/sec）
-- 类型安全（完整类型提示，支持静态类型检查）
-- 高测试覆盖率（270+ 测试用例，88.66% 覆盖率）
+- 零依赖（仅使用 Rust 标准库）
+- 高性能、类型安全
+- 完整单元测试覆盖
 
 ## Tech Stack
 
 ### Core Technologies
-- **Python 3.12+**：仅使用标准库，零第三方依赖
-- **Type Hints**：完整类型标注，支持 mypy 静态检查
+- **Rust**：零依赖，类型安全
+- **Type System**：完整类型标注，编译时检查
 
 ### Development Tools
-- **pytest** 8.0.0+：单元测试、集成测试、性能基准测试
-- **pytest-cov** 4.1.0+：代码覆盖率报告
-- **mypy** 1.8.0+：静态类型检查（strict 模式）
-- **black** 24.0.0+：代码格式化（88 字符行宽）
-- **ruff** 0.2.0+：快速 linter（替代 flake8/isort）
+- **cargo test**：单元测试、集成测试
+- **cargo fmt**：代码格式化
+- **cargo clippy**：代码质量检查
+- **cargo doc**：文档生成
 
 ### Build System
-- **setuptools** 68.0+：包管理和分发
-- **wheel**：二进制分发格式
+- **Cargo**：包管理和构建
 
 ## Project Conventions
 
@@ -39,18 +36,16 @@
 #### Naming Conventions
 遵循 `NAME_CONVENTION.md`：
 
-- **文件名**：`lowercase_with_underscores.py`
-  - `card.py`, `pattern_recognizer.py`, `play_generator.py`
-- **类名**：`PascalCase`
+- **文件名**：`lowercase_with_underscores.rs`
+  - `card.rs`, `recognizer.rs`, `play_generator.rs`
+- **结构体名**：`PascalCase`
   - `Card`, `PatternRecognizer`, `PlayGenerator`, `ScoreComputation`
-- **函数/方法**：`lowercase_with_underscores`
+- **函数/方法**：`lowercase_with_underscores` (snake_case)
   - `generate_all_plays()`, `analyze_cards()`, `can_beat_play()`
 - **常量**：`UPPERCASE_WITH_UNDERSCORES`
   - `MAX_COMBINATIONS`, `DEFAULT_NUM_DECKS`
-- **枚举值**：`UPPERCASE`
-  - `PlayType.SINGLE`, `BonusType.ROUND_WIN`
-- **私有成员**：`_leading_underscore`
-  - `_generate_pairs()`, `_group_by_rank()`
+- **枚举变体**：`PascalCase`
+  - `PlayType::Single`, `BonusType::RoundWin`
 
 #### 游戏术语翻译
 | 中文 | 英文 | 说明 |
@@ -70,13 +65,6 @@
   - `can_beat_play()`, `is_consecutive()`, `has_must_play_violation()`
 - **分析/计算**：`analyze_*`, `calculate_*`, `count_*`
   - `analyze_cards()`, `calculate_total_score()`, `count_all_plays()`
-
-#### 格式化规则
-- **行宽**：88 字符（black 默认）
-- **缩进**：4 空格
-- **引号**：双引号优先
-- **尾随逗号**：多行集合末尾保留逗号
-- **导入顺序**：标准库 → 第三方库 → 本地模块（ruff 自动排序）
 
 ### Architecture Patterns
 
@@ -124,51 +112,30 @@ Layer 4: ai_helpers, variants (辅助层)
 
 #### 测试结构
 ```
-tests/
-├── unit/           # 单元测试（258 个）
-│   ├── test_models.py
-│   ├── test_patterns.py
-│   ├── test_scoring.py
-│   ├── test_ai_helpers.py
-│   └── test_variants.py
-├── integration/    # 集成测试（12 个）
-│   ├── test_full_game_flow.py
-│   └── test_game_simulation.py
-└── benchmark/      # 性能基准测试
-    └── test_performance.py
+rust/datongzi-rules/
+├── src/           # 模块内 #[cfg(test)] 单元测试
+└── tests/         # 集成测试
+    ├── basic.rs
+    ├── scoring_integration.rs
+    └── test_*.rs
 ```
 
 #### 测试要求
-- **覆盖率目标**：>85%（当前 88.66%）
 - **必须测试**：所有新功能必须包含单元测试
 - **回归测试**：修改现有功能必须通过所有现有测试
 - **性能测试**：性能敏感路径需要 benchmark 测试
 
 #### 测试命令
 ```bash
-# 运行所有测试（含覆盖率）
-python run.py test
+# 运行所有测试
+cd rust && cargo test
 
-# 仅运行单元测试
-python run.py unit
+# 运行特定测试
+cd rust && cargo test test_name
 
-# 仅运行集成测试
-python run.py integration
-
-# 运行性能基准测试
-python run.py benchmark
-
-# 直接使用 pytest（单个测试文件）
-pytest tests/unit/test_basic.py -v
-
-# 直接使用 pytest（单个测试函数）
-pytest tests/unit/test_basic.py::test_function_name -v
+# 运行特定测试文件
+cd rust && cargo test --test basic
 ```
-
-#### 测试标记
-- `@pytest.mark.unit`：单元测试
-- `@pytest.mark.integration`：集成测试
-- `@pytest.mark.performance`：性能基准测试
 
 ### Git Workflow
 
@@ -246,7 +213,7 @@ docs: 更新 README API 文档
 
 ### 技术约束
 1. **零依赖原则**：
-   - ✅ 只能使用 Python 3.12+ 标准库
+   - ✅ 只能使用 Rust 标准库
    - ❌ 禁止引入任何第三方运行时依赖（开发依赖除外）
 
 2. **依赖方向约束**：
@@ -260,69 +227,66 @@ docs: 更新 README API 文档
 ### 架构约束（反模式警告）
 
 #### ❌ 禁止在高层重新实现规则
-```python
-# ❌ 错误：在 datongzi/ai 中重新实现规则
-class AI:
-    def _can_beat(self, cards, current_play):
-        # 自己实现验证逻辑...
+```rust
+// ❌ 错误：在 datongzi/ai 中重新实现规则
+impl AI {
+    fn can_beat(&self, cards: &[Card], current_play: &PlayPattern) -> bool {
+        // 自己实现验证逻辑...
+    }
+}
 
-# ✅ 正确：依赖规则库
-from datongzi_rules import PlayValidator
-can_beat = PlayValidator.can_beat_play(cards, current_play)
+// ✅ 正确：依赖规则库
+use datongzi_rules::PlayValidator;
+let can_beat = PlayValidator::can_beat_play(&cards, &current_play);
 ```
 
 #### ❌ 禁止多处生成合法出牌
-```python
-# ❌ 错误：在 AI 中重复实现 PlayGenerator
-class AI:
-    def _get_legal_moves(self, hand):
-        # 重新实现生成逻辑...
+```rust
+// ❌ 错误：在 AI 中重复实现 PlayGenerator
+impl AI {
+    fn get_legal_moves(&self, hand: &[Card]) -> Vec<Vec<Card>> {
+        // 重新实现生成逻辑...
+    }
+}
 
-# ✅ 正确：使用 PlayGenerator
-from datongzi_rules import PlayGenerator
-moves = PlayGenerator.generate_beating_plays_with_same_type_or_trump(hand, current_pattern)
+// ✅ 正确：使用 PlayGenerator
+use datongzi_rules::PlayGenerator;
+let moves = PlayGenerator::generate_beating_plays_with_same_type_or_trump(&hand, &current_pattern);
 ```
 
 #### ❌ 禁止在规则库实现 AI 策略
-```python
-# ❌ 错误：在规则库实现复杂 AI
-class HandEvaluator:
-    def choose_best_play(self, hand, game_state):
-        # 多步博弈推演...
+```rust
+// ❌ 错误：在规则库实现复杂 AI
+impl HandEvaluator {
+    fn choose_best_play(&self, hand: &[Card], game_state: &GameState) -> Vec<Card> {
+        // 多步博弈推演...
+    }
+}
 
-# ✅ 正确：规则库只提供工具，AI 在上层实现
-# datongzi/ai/strategy.py
-class AIStrategy:
-    def choose_best_play(self, valid_plays, hand, game_state):
-        # AI 策略逻辑（基于 PlayGenerator 提供的 valid_plays）
+// ✅ 正确：规则库只提供工具，AI 在上层实现
+// datongzi/ai/strategy.rs
+impl AIStrategy {
+    fn choose_best_play(&self, valid_plays: &[Vec<Card>], hand: &[Card], game_state: &GameState) -> Vec<Card> {
+        // AI 策略逻辑（基于 PlayGenerator 提供的 valid_plays）
+    }
+}
 ```
 
 #### ❌ 禁止在规则库管理游戏状态
-```python
-# ❌ 错误：在规则库创建 Round/Game 类
-class Round:
-    plays: list[Play]
-    current_player: Player
+```rust
+// ❌ 错误：在规则库创建 Round/Game 类
+struct Round {
+    plays: Vec<Play>,
+    current_player: Option<Player>,
+}
 
-# ✅ 正确：状态管理在上层
-# datongzi/models/round.py
-class Round:
-    def __init__(self, players):
-        self.plays = []
-        self.scoring_engine = ScoreComputation(config)  # 只使用计分引擎
+// ✅ 正确：状态管理在上层
+// datongzi/models/round.rs
+struct Round {
+    plays: Vec<Play>,
+    scoring_engine: ScoreComputation,  // 只使用计分引擎
+}
 ```
-
-### 性能约束
-- **牌型识别**：~150K ops/sec (0.006ms/op)
-- **游戏设置**：~5K games/sec (0.19ms/op)
-- **出牌生成（满手牌 41 张）**：6.38ms/op
-- **计分计算**：~140K ops/sec (0.007ms/op)
-
-### 代码质量约束
-- **测试覆盖率**：>85%（当前 88.66%）
-- **类型检查**：mypy strict 模式，0 错误
-- **代码格式化**：black + ruff，0 警告
-- **文档完整性**：所有公共 API 必须有 docstring
 
 ## External Dependencies
 
@@ -336,19 +300,12 @@ class Round:
   - UI/前端逻辑
 
 ### 开发依赖（仅开发时使用）
-- pytest：测试框架
-- pytest-cov：覆盖率报告
-- mypy：类型检查
-- black：代码格式化
-- ruff：代码质量检查
-
-### 构建工具
-- setuptools：包构建
-- wheel：二进制分发
+- thiserror：错误处理
+- rand：随机数生成（测试用）
 
 ## 重要文档
 
-- **CLAUDE.md**：AI 助手开发指南（本文件）
+- **CLAUDE.md**：AI 助手开发指南
 - **GAME_RULE.md**：游戏规则详细定义（修改规则逻辑前必读）
 - **NAME_CONVENTION.md**：命名规范
 - **ARCHITECTURE.md**：SOLID 原则详细说明、模块职责、反模式警告
@@ -358,9 +315,9 @@ class Round:
 
 ### 添加新牌型
 1. 在 `PlayType` 枚举添加新类型
-2. 在 `PatternRecognizer.analyze_cards()` 添加识别逻辑
+2. 在 `PatternRecognizer::analyze_cards()` 添加识别逻辑
 3. 在 `PlayFormationValidator` 添加验证方法
-4. 在 `PlayValidator.can_beat_play()` 添加对抗规则
+4. 在 `PlayValidator::can_beat_play()` 添加对抗规则
 5. 在 `ScoreComputation` 添加计分规则（如果有奖励）
 6. 添加单元测试
 

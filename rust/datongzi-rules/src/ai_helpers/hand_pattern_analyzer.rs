@@ -393,7 +393,10 @@ impl HandPatternAnalyzer {
         dizha_list
     }
 
-    /// Find all tongzi (3 same suit, same rank).
+    /// Find all tongzi (3+ same suit, same rank).
+    ///
+    /// IMPORTANT: Returns ALL cards in the tongzi group (not just first 3),
+    /// matching Python's behavior where all same-suit cards are consumed.
     fn _find_tongzi(cards: &[Card]) -> Vec<Vec<Card>> {
         let mut suit_rank_groups: HashMap<(Suit, Rank), Vec<Card>> = HashMap::new();
         for card in cards {
@@ -406,10 +409,13 @@ impl HandPatternAnalyzer {
         let mut tongzi_list = Vec::new();
         for ((_suit, _rank), group_cards) in suit_rank_groups {
             if group_cards.len() >= 3 {
-                let tongzi = group_cards[0..3].to_vec();
-                if let Some(pattern) = PatternRecognizer::analyze_cards(&tongzi) {
+                // Take first 3 cards to validate as tongzi
+                let tongzi_sample = group_cards[0..3].to_vec();
+                if let Some(pattern) = PatternRecognizer::analyze_cards(&tongzi_sample) {
                     if pattern.play_type == PlayType::Tongzi {
-                        tongzi_list.push(tongzi);
+                        // Add ALL cards in this suit-rank group (not just first 3)
+                        // This matches Python's behavior: suit_cards are all consumed
+                        tongzi_list.push(group_cards.clone());
                     }
                 }
             }

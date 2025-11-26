@@ -5,6 +5,7 @@
 
 use std::collections::HashMap;
 
+use crate::ai_helpers::{filter_consecutive_pairs, filter_pairs, filter_singles, filter_triples};
 use crate::models::{Card, Rank, Suit};
 use crate::patterns::{PatternRecognizer, PlayPattern, PlayType, PlayValidator};
 
@@ -89,19 +90,17 @@ impl PlayGenerator {
 
         let mut all_plays = Vec::new();
 
-        // Generate singles
-        for card in hand {
-            all_plays.push(vec![*card]);
-        }
+        // Generate singles (with identical play filtering)
+        all_plays.extend(filter_singles(hand));
 
-        // Generate pairs
-        all_plays.extend(Self::_generate_pairs(hand));
+        // Generate pairs (with identical play filtering)
+        all_plays.extend(filter_pairs(hand));
 
-        // Generate consecutive pairs
-        all_plays.extend(Self::_generate_consecutive_pairs(hand));
+        // Generate consecutive pairs (with identical play filtering)
+        all_plays.extend(filter_consecutive_pairs(hand));
 
-        // Generate triples
-        all_plays.extend(Self::_generate_triples(hand));
+        // Generate triples (with identical play filtering)
+        all_plays.extend(filter_triples(hand));
 
         // Generate triple with two
         all_plays.extend(Self::_generate_triple_with_two(hand));

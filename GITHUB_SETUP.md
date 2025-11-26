@@ -7,7 +7,7 @@
 访问 https://github.com/new 创建新仓库：
 
 - **Repository name**: `datongzi-rules`
-- **Description**: `零依赖的打筒子游戏规则引擎库（Python + Rust）`
+- **Description**: `零依赖的打筒子游戏规则引擎库（Rust）`
 - **Visibility**: Public 或 Private（根据需要）
 - **不要**勾选 "Initialize this repository with..."（已有代码）
 
@@ -24,14 +24,7 @@ git status
 git add .
 
 # 4. 提交更改
-git commit -m "feat: 添加 Rust 实现基础架构和 CI/CD
-
-- 创建 Cargo Workspace 结构
-- 实现基础数据模型（Card, Deck, GameConfig）
-- 重组项目结构（Python → python/，Rust → rust/）
-- 添加 GitHub Actions CI/CD 配置
-- 创建跨语言测试框架
-- 所有 Python 测试通过（270 个测试，88.60% 覆盖率）"
+git commit -m "feat: 初始化项目"
 
 # 5. 推送到 GitHub
 git push -u origin main
@@ -48,11 +41,9 @@ git push -u origin main
 https://github.com/yourusername/datongzi-rules/actions
 ```
 
-你应该看到三个工作流正在运行：
+你应该看到工作流正在运行：
 
 - ✅ **Rust CI**: 检查 Rust 代码格式、测试、文档
-- ✅ **Python CI**: 运行 Python 测试、类型检查
-- ✅ **Cross-Language Tests**: 验证 Python 和 Rust 一致性
 
 ### 4. 添加 Badges（可选）
 
@@ -60,7 +51,6 @@ https://github.com/yourusername/datongzi-rules/actions
 
 ```markdown
 ![Rust CI](https://github.com/yourusername/datongzi-rules/workflows/Rust%20CI/badge.svg)
-![Python CI](https://github.com/yourusername/datongzi-rules/workflows/Python%20CI/badge.svg)
 ```
 
 ---
@@ -95,7 +85,6 @@ git remote set-url origin https://github.com/yourusername/datongzi-rules.git
 
 常见问题：
 - Rust 工具链下载失败：等待几分钟后重试
-- Python 依赖安装失败：检查 `pyproject.toml` 配置
 - 测试失败：查看具体测试日志
 
 ---
@@ -114,8 +103,6 @@ Settings → Branches → Branch protection rules → Add rule
 - ✅ Require a pull request before merging
 - ✅ Require status checks to pass before merging
   - rust-ci: Check
-  - python-ci: Test
-  - cross-language-tests: consistency-test
 - ✅ Require conversation resolution before merging
 
 ### 2. 启用 Codecov（代码覆盖率报告）
@@ -156,31 +143,6 @@ Settings → Branches → Branch protection rules → Add rule
 - 修改 `rust/` 目录下的文件
 - 修改 `.github/workflows/rust-ci.yml`
 
-### Python CI (`.github/workflows/python-ci.yml`)
-
-运行内容：
-- ✅ 单元测试（pytest）
-- ✅ 代码覆盖率（pytest-cov）
-- ✅ 格式检查（black）
-- ✅ Lint 检查（ruff）
-- ✅ 类型检查（mypy）
-
-运行条件：
-- 修改 `python/` 目录下的文件
-- 修改 `.github/workflows/python-ci.yml`
-
-### Cross-Language Tests (`.github/workflows/cross-language-tests.yml`)
-
-运行内容：
-- ✅ 运行 Python 测试
-- ✅ 运行 Rust 测试（Phase 2+ 实现后）
-- ✅ 对比结果确保一致性
-- ✅ 生成性能对比报告
-
-运行条件：
-- 每次 push 或 pull request
-- 每天 00:00 UTC 自动运行
-
 ---
 
 ## 开发工作流
@@ -195,8 +157,7 @@ git checkout -b feature/my-feature
 # ... 编辑文件 ...
 
 # 3. 本地测试
-cd python && python run.py test
-cd ../rust && cargo test
+cd rust && cargo test
 
 # 4. 提交
 git add .
@@ -247,4 +208,3 @@ Security → Dependabot alerts
 
 - 📖 GitHub Actions 文档：https://docs.github.com/actions
 - 📖 Rust CI 最佳实践：https://rust-lang.github.io/rustup-components-history/
-- 📖 Python 测试指南：https://docs.pytest.org/

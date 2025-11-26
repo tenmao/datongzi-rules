@@ -1,7 +1,7 @@
 # datongzi-rules 架构设计文档 (SOLID原则)
 
-**版本**: 0.2.0
-**更新**: 2025-01-17
+**版本**: 0.3.0
+**更新**: 2025-11-26
 **状态**: 权威架构文档
 
 ---
@@ -13,7 +13,6 @@
 4. [依赖关系](#依赖关系)
 5. [扩展指南](#扩展指南)
 6. [反模式警告](#反模式警告)
-7. [重要更新](#重要更新)
 
 ---
 
@@ -21,7 +20,7 @@
 
 ### 核心设计原则
 
-**datongzi-rules 是打筒子游戏的纯规则引擎库，零依赖纯Python实现（Python 3.12+）。**
+**datongzi-rules 是打筒子游戏的纯规则引擎库，零依赖 Rust 实现。**
 
 **职责定位**：
 - ✅ **规则逻辑**：牌型识别、出牌验证、计分计算
@@ -98,67 +97,77 @@
 
 #### ✅ 正确示例
 
-```python
-# ✅ PatternRecognizer: 只负责识别牌型
-class PatternRecognizer:
-    @staticmethod
-    def analyze_cards(cards: list[Card]) -> PlayPattern | None:
-        """识别给定牌是否为合法牌型"""
-        # 只做牌型识别，不做验证、不做生成、不做计分
+```rust
+// ✅ PatternRecognizer: 只负责识别牌型
+impl PatternRecognizer {
+    pub fn analyze_cards(cards: &[Card]) -> Option<PlayPattern> {
+        // 只做牌型识别，不做验证、不做生成、不做计分
+    }
+}
 
-# ✅ PlayValidator: 只负责验证是否能打
-class PlayValidator:
-    @staticmethod
-    def can_beat_play(cards: list[Card], current: PlayPattern) -> bool:
-        """验证是否能压过当前牌"""
-        # 只做验证，不做识别、不做生成
+// ✅ PlayValidator: 只负责验证是否能打
+impl PlayValidator {
+    pub fn can_beat_play(cards: &[Card], current: &PlayPattern) -> bool {
+        // 只做验证，不做识别、不做生成
+    }
+}
 
-# ✅ PlayGenerator: 只负责生成合法出牌
-class PlayGenerator:
-    @staticmethod
-    def generate_beating_plays_with_same_type_or_trump(
-        hand: list[Card], current_pattern: PlayPattern
-    ) -> list[list[Card]]:
-        """生成能打过当前牌的出牌（同型或王牌）"""
-        # 只做生成，不做识别、不做验证、不做决策
+// ✅ PlayGenerator: 只负责生成合法出牌
+impl PlayGenerator {
+    pub fn generate_beating_plays_with_same_type_or_trump(
+        hand: &[Card],
+        current_pattern: &PlayPattern
+    ) -> Vec<Vec<Card>> {
+        // 只做生成，不做识别、不做验证、不做决策
+    }
+}
 
-# ✅ ScoreComputation: 只负责计分计算（纯计算，不管理状态）
-class ScoreComputation:
-    def create_round_win_event(
-        self, player_id: str, round_cards: list[Card], round_number: int
-    ) -> ScoringEvent:
-        """计算回合基础分（接收上层收集的数据）"""
-        # 只做计算，不跟踪回合、不管理状态
+// ✅ ScoreComputation: 只负责计分计算（纯计算，不管理状态）
+impl ScoreComputation {
+    pub fn create_round_win_event(
+        &self,
+        player_id: &str,
+        round_cards: &[Card],
+        round_number: u32
+    ) -> ScoringEvent {
+        // 只做计算，不跟踪回合、不管理状态
+    }
+}
 
-# ✅ HandPatternAnalyzer: 只负责手牌结构分析
-class HandPatternAnalyzer:
-    @staticmethod
-    def analyze_patterns(hand: list[Card]) -> HandPatterns:
-        """分析手牌结构（非重叠分解）"""
-        # 只做结构分析，不做评估、不做决策
+// ✅ HandPatternAnalyzer: 只负责手牌结构分析
+impl HandPatternAnalyzer {
+    pub fn analyze_patterns(hand: &[Card]) -> HandPatterns {
+        // 只做结构分析，不做评估、不做决策
+    }
+}
 ```
 
 #### ❌ 违反示例
 
-```python
-# ❌ 错误: 一个类做了太多事情（上帝类）
-class GameRuleEngine:
-    def analyze_cards(self, cards): pass      # 识别牌型
-    def can_beat(self, cards, current): pass  # 验证
-    def generate_moves(self, hand): pass      # 生成出牌
-    def calculate_score(self, pattern): pass  # 计分
-    def evaluate_hand(self, hand): pass       # 评估手牌
-    def suggest_play(self, hand): pass        # AI建议
-    # ❌ 违反SRP - 应该拆分成6个独立的类！
+```rust
+// ❌ 错误: 一个类做了太多事情（上帝类）
+struct GameRuleEngine;
+impl GameRuleEngine {
+    fn analyze_cards(&self, cards: &[Card]) {}      // 识别牌型
+    fn can_beat(&self, cards: &[Card], current: &PlayPattern) {}  // 验证
+    fn generate_moves(&self, hand: &[Card]) {}      // 生成出牌
+    fn calculate_score(&self, pattern: &PlayPattern) {}  // 计分
+    fn evaluate_hand(&self, hand: &[Card]) {}       // 评估手牌
+    fn suggest_play(&self, hand: &[Card]) {}        // AI建议
+    // ❌ 违反SRP - 应该拆分成6个独立的结构体！
+}
 
-# ❌ 错误: ScoreComputation 管理状态
-class ScoreComputation:
-    def __init__(self):
-        self.round_cards = []  # ❌ 不应该维护状态
-        self.current_round = None
+// ❌ 错误: ScoreComputation 管理状态
+struct ScoreComputation {
+    round_cards: Vec<Card>,  // ❌ 不应该维护状态
+    current_round: Option<Round>,
+}
 
-    def add_play(self, cards):  # ❌ 不应该跟踪出牌
-        self.round_cards.extend(cards)
+impl ScoreComputation {
+    fn add_play(&mut self, cards: &[Card]) {  // ❌ 不应该跟踪出牌
+        self.round_cards.extend(cards.iter().cloned());
+    }
+}
 ```
 
 ---
@@ -169,35 +178,32 @@ class ScoreComputation:
 
 #### ✅ 正确示例：通过配置扩展，不修改代码
 
-```python
-# ✅ 通过 GameConfig 参数化规则变体
-config = ConfigFactory.create_standard_3deck_3player()
-# 或
-config = ConfigFactory.create_4deck_4player()
-# 或
-config = ConfigFactory.create_custom(
-    num_decks=2,
-    num_players=2,
-    must_beat_rule=False  # 新手友好模式：关闭"有牌必打"
-)
+```rust
+// ✅ 通过 GameConfig 参数化规则变体
+let config = ConfigFactory::create_standard_3deck_3player();
+// 或
+let config = ConfigFactory::create_4deck_4player();
+// 或
+let config = ConfigFactory::create_custom(
+    2,      // num_decks
+    2,      // num_players
+    false   // must_beat_rule: 新手友好模式
+);
 
-# 核心代码无需修改，通过配置扩展
-engine = ScoreComputation(config)
+// 核心代码无需修改，通过配置扩展
+let engine = ScoreComputation::new(&config);
 ```
 
 #### ❌ 违反示例：硬编码规则变体
 
-```python
-# ❌ 错误: if-else 硬编码规则模式
-if GAME_MODE == "standard":
-    k_tongzi_bonus = 100
-    a_tongzi_bonus = 200
-    must_beat_rule = True
-elif GAME_MODE == "simple":
-    k_tongzi_bonus = 50
-    a_tongzi_bonus = 100
-    must_beat_rule = False
-# ❌ 每增加一个变体都要修改代码
+```rust
+// ❌ 错误: if-else 硬编码规则模式
+let (k_tongzi_bonus, a_tongzi_bonus, must_beat_rule) = match game_mode {
+    "standard" => (100, 200, true),
+    "simple" => (50, 100, false),
+    _ => panic!("Unknown mode"),
+};
+// ❌ 每增加一个变体都要修改代码
 ```
 
 ---
@@ -206,16 +212,17 @@ elif GAME_MODE == "simple":
 
 **子类对象应该能够替换父类对象且不影响程序正确性。**
 
-在本项目中，我们使用**数据类（dataclass）和静态方法**而非继承，避免LSP问题。
+在本项目中，我们使用**结构体和 trait**而非继承，避免LSP问题。
 
-```python
-# ✅ 使用 dataclass 和组合，而非继承
-@dataclass
-class PlayPattern:
-    play_type: PlayType
-    primary_rank: Rank
-    card_count: int
-    # 组合而非继承，避免LSP问题
+```rust
+// ✅ 使用结构体和组合，而非继承
+#[derive(Debug, Clone)]
+pub struct PlayPattern {
+    pub play_type: PlayType,
+    pub primary_rank: Rank,
+    pub card_count: usize,
+    // 组合而非继承，避免LSP问题
+}
 ```
 
 ---
@@ -226,38 +233,34 @@ class PlayPattern:
 
 #### ✅ 正确示例：细粒度接口
 
-```python
-# ✅ PatternRecognizer: 只提供识别接口
-class PatternRecognizer:
-    @staticmethod
-    def analyze_cards(cards: list[Card]) -> PlayPattern | None:
-        pass
+```rust
+// ✅ PatternRecognizer: 只提供识别接口
+impl PatternRecognizer {
+    pub fn analyze_cards(cards: &[Card]) -> Option<PlayPattern> {}
+}
 
-# ✅ PlayValidator: 只提供验证接口
-class PlayValidator:
-    @staticmethod
-    def can_beat_play(cards: list[Card], current: PlayPattern) -> bool:
-        pass
+// ✅ PlayValidator: 只提供验证接口
+impl PlayValidator {
+    pub fn can_beat_play(cards: &[Card], current: &PlayPattern) -> bool {}
+    pub fn is_valid_play(cards: &[Card]) -> bool {}
+}
 
-    @staticmethod
-    def is_valid_play(cards: list[Card]) -> bool:
-        pass
-
-# 客户端只需要识别 → 只依赖 PatternRecognizer
-# 客户端只需要验证 → 只依赖 PlayValidator
+// 客户端只需要识别 → 只依赖 PatternRecognizer
+// 客户端只需要验证 → 只依赖 PlayValidator
 ```
 
 #### ❌ 违反示例：臃肿接口
 
-```python
-# ❌ 错误: 一个接口提供所有功能
-class GameRulesInterface:
-    def analyze_cards(self): pass
-    def can_beat_play(self): pass
-    def generate_plays(self): pass
-    def calculate_score(self): pass
-    def evaluate_hand(self): pass
-    # ❌ 客户端可能只需要识别，却被迫依赖整个接口
+```rust
+// ❌ 错误: 一个 trait 提供所有功能
+trait GameRulesInterface {
+    fn analyze_cards(&self, cards: &[Card]) -> Option<PlayPattern>;
+    fn can_beat_play(&self, cards: &[Card], current: &PlayPattern) -> bool;
+    fn generate_plays(&self, hand: &[Card]) -> Vec<Vec<Card>>;
+    fn calculate_score(&self, pattern: &PlayPattern) -> i32;
+    fn evaluate_hand(&self, hand: &[Card]) -> i32;
+    // ❌ 客户端可能只需要识别，却被迫依赖整个接口
+}
 ```
 
 ---
@@ -268,39 +271,47 @@ class GameRulesInterface:
 
 #### ✅ 正确示例：高层依赖规则库的抽象接口
 
-```python
-# datongzi/ai/strategy.py (高层模块)
-from datongzi_rules import PlayGenerator, PlayValidator  # ← 依赖抽象接口
+```rust
+// datongzi/ai/strategy.rs (高层模块)
+use datongzi_rules::{PlayGenerator, PlayValidator};  // ← 依赖抽象接口
 
-class AIStrategy:
-    def choose_play(self, hand, current_pattern):
-        # 依赖规则库的接口，不重新实现规则
-        valid_plays = PlayGenerator.generate_beating_plays_with_same_type_or_trump(
+struct AIStrategy;
+
+impl AIStrategy {
+    fn choose_play(&self, hand: &[Card], current_pattern: &PlayPattern) -> Vec<Card> {
+        // 依赖规则库的接口，不重新实现规则
+        let valid_plays = PlayGenerator::generate_beating_plays_with_same_type_or_trump(
             hand, current_pattern
-        )
+        );
 
-        # AI 只负责决策逻辑
-        return self._evaluate_and_choose(valid_plays)
+        // AI 只负责决策逻辑
+        self.evaluate_and_choose(&valid_plays)
+    }
+}
 ```
 
 #### ❌ 违反示例：高层重新实现底层逻辑
 
-```python
-# ❌ 错误: AI 重新实现规则验证
-class AIStrategy:
-    def choose_play(self, hand, current_pattern):
-        # ❌ 重新实现规则逻辑
-        valid_plays = []
-        for combo in self._generate_combinations(hand):
-            if self._can_beat(combo, current_pattern):  # ❌ 重复实现
-                valid_plays.append(combo)
+```rust
+// ❌ 错误: AI 重新实现规则验证
+impl AIStrategy {
+    fn choose_play(&self, hand: &[Card], current_pattern: &PlayPattern) -> Vec<Card> {
+        // ❌ 重新实现规则逻辑
+        let mut valid_plays = Vec::new();
+        for combo in self.generate_combinations(hand) {
+            if self.can_beat(&combo, current_pattern) {  // ❌ 重复实现
+                valid_plays.push(combo);
+            }
+        }
 
-        # 违反 DIP - 应该依赖 PlayGenerator 接口
+        // 违反 DIP - 应该依赖 PlayGenerator 接口
+    }
+}
 ```
 
 ---
 
-## 模块职责边界（2025-01-17 更新）
+## 模块职责边界
 
 ### Layer 1: models/ (数据模型层)
 
@@ -315,19 +326,19 @@ class AIStrategy:
 - ❌ AI决策
 
 **核心类**：
-```python
-# Card: 卡牌（花色+点数）
-card = Card(Suit.SPADES, Rank.ACE)
-card.is_scoring_card  # True（5/10/K）
-card.score_value      # 10
+```rust
+// Card: 卡牌（花色+点数）
+let card = Card::new(Suit::Spades, Rank::Ace);
+card.is_scoring_card();  // true（5/10/K）
+card.score_value();      // 10
 
-# Deck: 牌堆（创建、洗牌、发牌）
-deck = Deck.create_standard_deck(num_decks=3)
-deck.shuffle()
-hand = deck.deal_cards(41)
+// Deck: 牌堆（创建、洗牌、发牌）
+let mut deck = Deck::create_standard_deck(3);
+deck.shuffle();
+let hand = deck.deal_cards(41);
 
-# GameConfig: 游戏配置（参数化规则变体）
-config = ConfigFactory.create_standard_3deck_3player()
+// GameConfig: 游戏配置（参数化规则变体）
+let config = ConfigFactory::create_standard_3deck_3player();
 ```
 
 ---
@@ -345,18 +356,18 @@ config = ConfigFactory.create_standard_3deck_3player()
 - ❌ 计分逻辑
 
 **核心类**：
-```python
-# PatternRecognizer: 牌型识别器
-pattern = PatternRecognizer.analyze_cards(cards)
-# 返回：PlayPattern(play_type, primary_rank, card_count, ...)
+```rust
+// PatternRecognizer: 牌型识别器
+let pattern = PatternRecognizer::analyze_cards(&cards);
+// 返回：PlayPattern { play_type, primary_rank, card_count, ... }
 
-# PlayValidator: 出牌验证器
-can_beat = PlayValidator.can_beat_play(cards, current_pattern)
-is_valid = PlayValidator.is_valid_play(cards)
+// PlayValidator: 出牌验证器
+let can_beat = PlayValidator::can_beat_play(&cards, &current_pattern);
+let is_valid = PlayValidator::is_valid_play(&cards);
 
-# PatternFinder: 牌型提取器
-bombs = PatternFinder.find_bombs(hand)
-tongzi = PatternFinder.find_tongzi(hand)
+// PatternFinder: 牌型提取器
+let bombs = PatternFinder::find_bombs(&hand);
+let tongzi = PatternFinder::find_tongzi(&hand);
 ```
 
 ---
@@ -378,58 +389,66 @@ tongzi = PatternFinder.find_tongzi(hand)
 - ❌ 识别牌型（接收已识别的 PlayPattern）
 
 **职责分工**：
-```python
-# ✅ 上层（datongzi）负责：
-class Round:
-    def is_finished(self):
-        # 判断回合结束
-        return all(player.passed for player in self.other_players)
+```rust
+// ✅ 上层（datongzi）负责：
+impl Round {
+    fn is_finished(&self) -> bool {
+        // 判断回合结束
+        self.other_players.iter().all(|p| p.passed)
+    }
 
-    def end_round(self):
-        # 收集回合数据
-        all_cards = [card for play in self.plays for card in play.cards]
-        winner = self.plays[-1].player_id
-        winning_pattern = PatternRecognizer.analyze_cards(self.plays[-1].cards)
+    fn end_round(&mut self) {
+        // 收集回合数据
+        let all_cards: Vec<Card> = self.plays.iter()
+            .flat_map(|play| play.cards.iter().cloned())
+            .collect();
+        let winner = &self.plays.last().unwrap().player_id;
+        let winning_pattern = PatternRecognizer::analyze_cards(&self.plays.last().unwrap().cards);
 
-        # 调用计分引擎（只计算）
-        engine.create_round_win_event(winner, all_cards, round_number)
-        engine.create_special_bonus_events(winner, winning_pattern, round_number, True)
+        // 调用计分引擎（只计算）
+        engine.create_round_win_event(winner, &all_cards, round_number);
+        engine.create_special_bonus_events(winner, &winning_pattern, round_number, true);
+    }
+}
 
-# ✅ 规则库（ScoreComputation）只负责：
-class ScoreComputation:
-    def create_round_win_event(
-        self, player_id: str, round_cards: list[Card], round_number: int
-    ) -> ScoringEvent:
-        # 纯计算：输入 → 输出，无状态
-        base_score = self.calculate_round_base_score(round_cards)
-        return ScoringEvent(player_id, BonusType.ROUND_WIN, base_score, ...)
+// ✅ 规则库（ScoreComputation）只负责：
+impl ScoreComputation {
+    pub fn create_round_win_event(
+        &self,
+        player_id: &str,
+        round_cards: &[Card],
+        round_number: u32
+    ) -> ScoringEvent {
+        // 纯计算：输入 → 输出，无状态
+        let base_score = self.calculate_round_base_score(round_cards);
+        ScoringEvent::new(player_id, BonusType::RoundWin, base_score)
+    }
+}
 ```
 
 **核心类**：
-```python
-# ScoreComputation: 计分引擎（纯计算）
-engine = ScoreComputation(config)
+```rust
+// ScoreComputation: 计分引擎（纯计算）
+let engine = ScoreComputation::new(&config);
 
-# 回合基础分
-event = engine.create_round_win_event(player_id, round_cards, round_number)
+// 回合基础分
+let event = engine.create_round_win_event(&player_id, &round_cards, round_number);
 
-# 特殊奖励（筒子/地炸）
-events = engine.create_special_bonus_events(
-    player_id, winning_pattern, round_number, is_round_winning_play=True
-)
+// 特殊奖励（筒子/地炸）
+let events = engine.create_special_bonus_events(
+    &player_id, &winning_pattern, round_number, true  // is_round_winning_play
+);
 
-# 完成位置奖励
-events = engine.create_finish_bonus_events(["p1", "p2", "p3"])
+// 完成位置奖励
+let events = engine.create_finish_bonus_events(&["p1", "p2", "p3"]);
 
-# 计算总分
-total = engine.calculate_total_score_for_player(player_id)
+// 计算总分
+let total = engine.calculate_total_score_for_player(&player_id);
 ```
 
 ---
 
-### Layer 4: ai_helpers/ (AI辅助工具层)（2025-01-17 重构）
-
-**重要变更**：已删除 `HandEvaluator` 和 `PatternSuggester`，只保留核心工具。
+### Layer 4: ai_helpers/ (AI辅助工具层)
 
 **PlayGenerator 职责**：
 - ✅ **唯一应该生成所有合法出牌的地方**
@@ -450,19 +469,19 @@ total = engine.calculate_total_score_for_player(player_id)
 - ❌ CV识别纠错（前端职责）
 
 **核心类**：
-```python
-# PlayGenerator: 出牌生成器
-# ✅ 推荐：生成能打过的牌（同型或王牌）
-valid_plays = PlayGenerator.generate_beating_plays_with_same_type_or_trump(
-    hand, current_pattern
-)
+```rust
+// PlayGenerator: 出牌生成器
+// ✅ 推荐：生成能打过的牌（同型或王牌）
+let valid_plays = PlayGenerator::generate_beating_plays_with_same_type_or_trump(
+    &hand, &current_pattern
+);
 
-# ✅ 统计可能出牌数
-count = PlayGenerator.count_all_plays(hand)
+// ✅ 统计可能出牌数
+let count = PlayGenerator::count_all_plays(&hand);
 
-# HandPatternAnalyzer: 手牌结构分析器
-patterns = HandPatternAnalyzer.analyze_patterns(hand)
-# 返回：HandPatterns(dizha, tongzi, bombs, triples, pairs, singles, ...)
+// HandPatternAnalyzer: 手牌结构分析器
+let patterns = HandPatternAnalyzer::analyze_patterns(&hand);
+// 返回：HandPatterns { dizha, tongzi, bombs, triples, pairs, singles, ... }
 ```
 
 ---
@@ -477,14 +496,14 @@ patterns = HandPatternAnalyzer.analyze_patterns(hand)
 - ❌ 修改核心规则逻辑
 
 **核心类**：
-```python
-# ConfigFactory: 配置工厂
-config = ConfigFactory.create_standard_3deck_3player()
-config = ConfigFactory.create_4deck_4player()
-config = ConfigFactory.create_beginner_friendly()
+```rust
+// ConfigFactory: 配置工厂
+let config = ConfigFactory::create_standard_3deck_3player();
+let config = ConfigFactory::create_4deck_4player();
+let config = ConfigFactory::create_beginner_friendly();
 
-# VariantValidator: 配置验证器
-is_valid, warnings = VariantValidator.validate_config(config)
+// VariantValidator: 配置验证器
+let (is_valid, warnings) = VariantValidator::validate_config(&config);
 ```
 
 ---
@@ -526,35 +545,50 @@ Layer 1: models
 
 **步骤**：
 1. 在 `PlayType` 枚举添加新类型
-2. 在 `PatternRecognizer.analyze_cards()` 添加识别逻辑
+2. 在 `PatternRecognizer::analyze_cards()` 添加识别逻辑
 3. 在 `PlayFormationValidator` 添加验证方法
-4. 在 `PlayValidator.can_beat_play()` 添加对抗规则
+4. 在 `PlayValidator::can_beat_play()` 添加对抗规则
 5. 在 `ScoreComputation` 添加计分规则（如果有奖励）
 6. 在 `PlayGenerator` 添加生成逻辑（如果需要）
 7. 添加单元测试
 
 **示例**：添加"四带二"牌型
-```python
-# 1. 枚举
-class PlayType(IntEnum):
-    QUAD_WITH_TWO = 11  # 新增
+```rust
+// 1. 枚举
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PlayType {
+    // ... 现有类型
+    QuadWithTwo = 11,  // 新增
+}
 
-# 2. 识别
-class PatternRecognizer:
-    @staticmethod
-    def analyze_cards(cards: list[Card]) -> PlayPattern | None:
-        # ... 现有逻辑
-        if len(cards) == 6:
-            pattern = PatternRecognizer._check_quad_with_two(cards)
-            if pattern:
-                return pattern
+// 2. 识别
+impl PatternRecognizer {
+    pub fn analyze_cards(cards: &[Card]) -> Option<PlayPattern> {
+        // ... 现有逻辑
+        if cards.len() == 6 {
+            if let Some(pattern) = Self::check_quad_with_two(cards) {
+                return Some(pattern);
+            }
+        }
+        // ...
+    }
+}
 
-# 3. 验证 & 4. 对抗规则 & 5. 计分 & 6. 生成 ...
-# 7. 测试
-def test_quad_with_two():
-    cards = [Card(Suit.SPADES, Rank.ACE)] * 4 + [Card(Suit.HEARTS, Rank.FIVE)] * 2
-    pattern = PatternRecognizer.analyze_cards(cards)
-    assert pattern.play_type == PlayType.QUAD_WITH_TWO
+// 3. 验证 & 4. 对抗规则 & 5. 计分 & 6. 生成 ...
+// 7. 测试
+#[test]
+fn test_quad_with_two() {
+    let cards = vec![
+        Card::new(Suit::Spades, Rank::Ace),
+        Card::new(Suit::Hearts, Rank::Ace),
+        Card::new(Suit::Clubs, Rank::Ace),
+        Card::new(Suit::Diamonds, Rank::Ace),
+        Card::new(Suit::Hearts, Rank::Five),
+        Card::new(Suit::Spades, Rank::Five),
+    ];
+    let pattern = PatternRecognizer::analyze_cards(&cards).unwrap();
+    assert_eq!(pattern.play_type, PlayType::QuadWithTwo);
+}
 ```
 
 ---
@@ -568,35 +602,51 @@ def test_quad_with_two():
 4. 添加单元测试
 
 **示例**：添加"允许炸弹拆分"规则
-```python
-# 1. 配置字段
-@dataclass
-class GameConfig:
-    # ... 现有字段
-    allow_bomb_split: bool = False  # 新增
+```rust
+// 1. 配置字段
+#[derive(Debug, Clone)]
+pub struct GameConfig {
+    // ... 现有字段
+    pub allow_bomb_split: bool,  // 新增
+}
 
-# 2. 工厂方法
-class ConfigFactory:
-    @staticmethod
-    def create_flexible_mode() -> GameConfig:
-        return GameConfig(
-            num_decks=3,
-            num_players=3,
-            allow_bomb_split=True  # 启用新规则
-        )
+impl Default for GameConfig {
+    fn default() -> Self {
+        Self {
+            // ...
+            allow_bomb_split: false,
+        }
+    }
+}
 
-# 3. 使用配置
-class PlayGenerator:
-    @staticmethod
-    def generate_all_plays(hand: list[Card], config: GameConfig) -> list[list[Card]]:
-        if config.allow_bomb_split:
-            # 允许炸弹拆分逻辑
-            pass
+// 2. 工厂方法
+impl ConfigFactory {
+    pub fn create_flexible_mode() -> GameConfig {
+        GameConfig {
+            num_decks: 3,
+            num_players: 3,
+            allow_bomb_split: true,  // 启用新规则
+            ..Default::default()
+        }
+    }
+}
 
-# 4. 测试
-def test_flexible_mode():
-    config = ConfigFactory.create_flexible_mode()
-    assert config.allow_bomb_split == True
+// 3. 使用配置
+impl PlayGenerator {
+    pub fn generate_all_plays(hand: &[Card], config: &GameConfig) -> Vec<Vec<Card>> {
+        if config.allow_bomb_split {
+            // 允许炸弹拆分逻辑
+        }
+        // ...
+    }
+}
+
+// 4. 测试
+#[test]
+fn test_flexible_mode() {
+    let config = ConfigFactory::create_flexible_mode();
+    assert!(config.allow_bomb_split);
+}
 ```
 
 ---
@@ -605,147 +655,151 @@ def test_flexible_mode():
 
 ### ❌ 反模式1: 在高层重新实现规则
 
-```python
-# ❌ 错误: 在 datongzi/ai 中重新实现规则验证
-class AI:
-    def _can_beat(self, cards, current_play):
-        # 自己实现验证逻辑
-        if len(cards) == len(current_play.cards):
-            if all(c.rank > current_play.primary_rank for c in cards):
-                return True
-        # ❌ 重复实现 PlayValidator 的逻辑
+```rust
+// ❌ 错误: 在 datongzi/ai 中重新实现规则验证
+impl AI {
+    fn can_beat(&self, cards: &[Card], current_play: &PlayPattern) -> bool {
+        // 自己实现验证逻辑
+        if cards.len() == current_play.card_count {
+            if cards.iter().all(|c| c.rank > current_play.primary_rank) {
+                return true;
+            }
+        }
+        false
+        // ❌ 重复实现 PlayValidator 的逻辑
+    }
+}
 
-# ✅ 正确: 依赖规则库
-from datongzi_rules import PlayValidator
+// ✅ 正确: 依赖规则库
+use datongzi_rules::PlayValidator;
 
-class AI:
-    def can_beat(self, cards, current_play):
-        return PlayValidator.can_beat_play(cards, current_play)
+impl AI {
+    fn can_beat(&self, cards: &[Card], current_play: &PlayPattern) -> bool {
+        PlayValidator::can_beat_play(cards, current_play)
+    }
+}
 ```
 
 ---
 
 ### ❌ 反模式2: 在规则库实现AI策略
 
-```python
-# ❌ 错误: 在规则库实现复杂AI决策
-class HandEvaluator:
-    def choose_best_play(self, hand, game_state):
-        # 多步博弈推演
-        # 评估对手手牌
-        # 决策最优出牌
-        # ❌ 这是 AI 策略，不是规则逻辑
+```rust
+// ❌ 错误: 在规则库实现复杂AI决策
+impl HandEvaluator {
+    fn choose_best_play(&self, hand: &[Card], game_state: &GameState) -> Vec<Card> {
+        // 多步博弈推演
+        // 评估对手手牌
+        // 决策最优出牌
+        // ❌ 这是 AI 策略，不是规则逻辑
+    }
+}
 
-# ✅ 正确: 规则库只提供工具，AI在上层实现
-# datongzi/ai/strategy.py
-class AIStrategy:
-    def choose_best_play(self, valid_plays, hand, game_state):
-        # AI 决策逻辑（基于 PlayGenerator 提供的 valid_plays）
-        for play in valid_plays:
-            score = self._evaluate_play(play, hand, game_state)
-            # AI 自己的评估逻辑
+// ✅ 正确: 规则库只提供工具，AI在上层实现
+// datongzi/ai/strategy.rs
+impl AIStrategy {
+    fn choose_best_play(&self, valid_plays: &[Vec<Card>], hand: &[Card], game_state: &GameState) -> Vec<Card> {
+        // AI 决策逻辑（基于 PlayGenerator 提供的 valid_plays）
+        for play in valid_plays {
+            let score = self.evaluate_play(play, hand, game_state);
+            // AI 自己的评估逻辑
+        }
+        // ...
+    }
+}
 ```
 
 ---
 
 ### ❌ 反模式3: 在规则库管理游戏状态
 
-```python
-# ❌ 错误: 在规则库创建 Round/Game 类
-class Round:
-    def __init__(self):
-        self.plays = []
-        self.current_player = None
-        # ❌ 状态管理不是规则库职责
+```rust
+// ❌ 错误: 在规则库创建 Round/Game 类
+struct Round {
+    plays: Vec<Play>,
+    current_player: Option<Player>,
+    // ❌ 状态管理不是规则库职责
+}
 
-# ✅ 正确: 状态管理在上层
-# datongzi/models/round.py
-class Round:
-    def __init__(self, players):
-        self.plays = []
-        self.scoring_engine = ScoreComputation(config)  # 只使用计分引擎
+// ✅ 正确: 状态管理在上层
+// datongzi/models/round.rs
+struct Round {
+    plays: Vec<Play>,
+    scoring_engine: ScoreComputation,  // 只使用计分引擎
+}
 
-    def end_round(self):
-        # 收集数据，调用规则库计算
-        all_cards = [card for play in self.plays for card in play.cards]
-        self.scoring_engine.create_round_win_event(winner, all_cards, round_num)
+impl Round {
+    fn end_round(&mut self) {
+        // 收集数据，调用规则库计算
+        let all_cards: Vec<Card> = self.plays.iter()
+            .flat_map(|p| p.cards.iter().cloned())
+            .collect();
+        self.scoring_engine.create_round_win_event(&winner, &all_cards, round_num);
+    }
+}
 ```
 
 ---
 
 ### ❌ 反模式4: ScoreComputation 跟踪回合状态
 
-```python
-# ❌ 错误: 计分引擎维护状态
-class ScoreComputation:
-    def __init__(self):
-        self.round_cards = []  # ❌ 不应该维护状态
-        self.current_round = None
+```rust
+// ❌ 错误: 计分引擎维护状态
+struct ScoreComputation {
+    round_cards: Vec<Card>,  // ❌ 不应该维护状态
+    current_round: Option<u32>,
+}
 
-    def add_play(self, cards):  # ❌ 不应该跟踪出牌
-        self.round_cards.extend(cards)
+impl ScoreComputation {
+    fn add_play(&mut self, cards: &[Card]) {  // ❌ 不应该跟踪出牌
+        self.round_cards.extend(cards.iter().cloned());
+    }
 
-    def end_round(self):  # ❌ 不应该判断回合结束
-        score = sum(c.score_value for c in self.round_cards)
+    fn end_round(&mut self) -> i32 {  // ❌ 不应该判断回合结束
+        self.round_cards.iter()
+            .filter(|c| c.is_scoring_card())
+            .map(|c| c.score_value())
+            .sum()
+    }
+}
 
-# ✅ 正确: 纯计算，上层传入数据
-class ScoreComputation:
-    def create_round_win_event(
-        self, player_id: str, round_cards: list[Card], round_number: int
-    ) -> ScoringEvent:
-        # 纯计算：输入 → 输出，无状态
-        score = sum(c.score_value for c in round_cards if c.is_scoring_card)
-        return ScoringEvent(player_id, BonusType.ROUND_WIN, score, ...)
+// ✅ 正确: 纯计算，上层传入数据
+impl ScoreComputation {
+    pub fn create_round_win_event(
+        &self,
+        player_id: &str,
+        round_cards: &[Card],
+        round_number: u32
+    ) -> ScoringEvent {
+        // 纯计算：输入 → 输出，无状态
+        let score: i32 = round_cards.iter()
+            .filter(|c| c.is_scoring_card())
+            .map(|c| c.score_value())
+            .sum();
+        ScoringEvent::new(player_id, BonusType::RoundWin, score)
+    }
+}
 ```
 
 ---
 
 ### ❌ 反模式5: 硬编码规则变体
 
-```python
-# ❌ 错误: if-else 硬编码
-if GAME_MODE == "standard":
-    k_tongzi_bonus = 100
-elif GAME_MODE == "high_stakes":
-    k_tongzi_bonus = 200
-# ❌ 每增加一个变体都要修改代码
+```rust
+// ❌ 错误: if-else 硬编码
+let k_tongzi_bonus = match game_mode.as_str() {
+    "standard" => 100,
+    "high_stakes" => 200,
+    _ => panic!("Unknown mode"),
+};
+// ❌ 每增加一个变体都要修改代码
 
-# ✅ 正确: 通过配置扩展
-config = ConfigFactory.create_standard_3deck_3player()  # k_tongzi_bonus=100
-# 或
-config = ConfigFactory.create_high_stakes()  # k_tongzi_bonus=200
-# 无需修改代码
+// ✅ 正确: 通过配置扩展
+let config = ConfigFactory::create_standard_3deck_3player();  // k_tongzi_bonus=100
+// 或
+let config = ConfigFactory::create_high_stakes();  // k_tongzi_bonus=200
+// 无需修改代码
 ```
-
----
-
-## 重要更新
-
-### 2025-01-17 重构
-
-**1. 删除模块**：
-- ❌ `HandEvaluator` - 手牌评估应在AI层实现
-- ❌ `PatternSuggester` - CV纠错应在前端实现
-
-**2. 重命名**：
-- `ScoringEngine` → `ScoreComputation` - 强调纯计算职责
-- `engine.py` → `computation.py` - 文件名与类名一致
-
-**3. 职责澄清**：
-- `ScoreComputation` 是纯计算引擎，不管理状态
-- 上层负责收集回合数据、判断回合结束
-- `PlayGenerator` 是唯一合法出牌生成来源
-- `HandPatternAnalyzer` 只做结构分析，不做评估
-
-**4. 架构图更新**：
-- 明确分层依赖关系
-- 明确上层（datongzi）职责
-- 明确职责边界
-
-**5. 文档更新**：
-- README.md: 完整API文档和使用示例
-- CLAUDE.md: 架构原则和职责边界
-- ARCHITECTURE.md: SOLID原则和反模式警告
 
 ---
 

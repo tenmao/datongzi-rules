@@ -23,7 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目定位
 
-`datongzi-rules` 是"打筒子"游戏的权威规则引擎库，零依赖纯Python实现(Python 3.12+)。
+`datongzi-rules` 是"打筒子"游戏的权威规则引擎库，零依赖 Rust 实现。
 
 **核心职责**: 提供牌型识别、出牌验证、计分逻辑、AI辅助工具等核心规则API，供上层游戏引擎(datongzi)调用。
 
@@ -32,7 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ❌ `datongzi-rules` → `datongzi` (规则库永不依赖游戏引擎)
 - 所有规则逻辑只在此库实现，避免在上层重复实现
 
-**职责边界**（2025-01-17 更新）：
+**职责边界**：
 - ✅ 牌型识别、出牌验证、计分逻辑
 - ✅ 生成合法出牌、手牌结构分析
 - ✅ 规则变体配置
@@ -43,32 +43,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 开发命令
 
 ```bash
-# 运行所有测试(含覆盖率)
-python run.py test
+# 构建项目
+cd rust && cargo build
 
-# 仅运行单元测试
-python run.py unit
+# 运行所有测试
+cd rust && cargo test
 
-# 仅运行集成测试
-python run.py integration
+# 运行特定测试
+cd rust && cargo test test_name
+
+# 运行特定测试文件
+cd rust && cargo test --test test_file_name
+
+# 代码格式化
+cd rust && cargo fmt
+
+# 代码检查
+cd rust && cargo clippy
 
 # 运行性能基准测试
-python run.py benchmark
+cd rust && cargo bench
 
-# 运行所有示例
-python run.py examples
-
-# 运行所有检查(测试 + 示例)
-python run.py check
-
-# 清理缓存
-python run.py clean
-
-# 直接使用pytest(单个测试文件)
-pytest tests/unit/test_basic.py -v
-
-# 直接使用pytest(单个测试函数)
-pytest tests/unit/test_basic.py::test_function_name -v
+# 生成文档
+cd rust && cargo doc --open
 ```
 
 ## 架构原则(SOLID)
@@ -124,7 +121,7 @@ Layer 4: ai_helpers, variants (辅助层) - PlayGenerator, HandPatternAnalyzer, 
 - 三张: 可以带0-2张
 - 飞机: 连续数字的三张，可以带翅膀(每组带0-2张)
 
-## 模块职责边界（2025-01-17 更新）
+## 模块职责边界
 
 ### models/ (数据模型层)
 - **允许**: 定义不可变数据结构、配置验证
@@ -146,7 +143,7 @@ Layer 4: ai_helpers, variants (辅助层) - PlayGenerator, HandPatternAnalyzer, 
 - `PatternRecognizer`: 牌型识别器（analyze_cards）
 - `PlayValidator`: 出牌验证器（can_beat_play, is_valid_play）
 - `PlayPattern`: 牌型数据类（play_type, primary_rank, etc.）
-- `PlayType`: 牌型枚举（SINGLE, PAIR, BOMB, TONGZI, DIZHA, etc.）
+- `PlayType`: 牌型枚举（Single, Pair, Bomb, Tongzi, Dizha, etc.）
 
 ### scoring/ (计分引擎层)
 **重要**: 这是**纯计算引擎**，不管理游戏状态！
@@ -160,20 +157,24 @@ Layer 4: ai_helpers, variants (辅助层) - PlayGenerator, HandPatternAnalyzer, 
 - ❌ 收集回合内所有牌（上层职责）
 
 **上层调用方职责**（datongzi 游戏引擎）:
-```python
-# 1. 判断回合结束
-class Round:
-    def is_finished(self):
-        return all(player.passed for player in self.other_players)
+```rust
+// 1. 判断回合结束
+impl Round {
+    fn is_finished(&self) -> bool {
+        self.other_players.iter().all(|p| p.passed)
+    }
+}
 
-# 2. 收集回合数据
-all_cards_in_round = [card for play in round.plays for card in play.cards]
-winner = round.plays[-1].player_id
-winning_pattern = PatternRecognizer.analyze_cards(round.plays[-1].cards)
+// 2. 收集回合数据
+let all_cards: Vec<Card> = round.plays.iter()
+    .flat_map(|p| p.cards.iter().cloned())
+    .collect();
+let winner = &round.plays.last().unwrap().player_id;
+let winning_pattern = PatternRecognizer::analyze_cards(&round.plays.last().unwrap().cards);
 
-# 3. 调用计分引擎
-engine.create_round_win_event(winner, all_cards_in_round, round_number)
-engine.create_special_bonus_events(winner, winning_pattern, round_number, is_round_winning_play=True)
+// 3. 调用计分引擎
+engine.create_round_win_event(winner, &all_cards, round_number);
+engine.create_special_bonus_events(winner, &winning_pattern, round_number, true);
 ```
 
 **核心类**:
@@ -181,9 +182,7 @@ engine.create_special_bonus_events(winner, winning_pattern, round_number, is_rou
 - `ScoringEvent`: 计分事件数据类
 - `BonusType`: 奖励类型枚举
 
-### ai_helpers/ (AI辅助工具层)（2025-01-17 重构）
-
-**重要变更**: 已删除 `HandEvaluator` 和 `PatternSuggester`，只保留核心工具。
+### ai_helpers/ (AI辅助工具层)
 
 **PlayGenerator 职责**:
 - ✅ **唯一应该生成所有合法出牌的地方**
@@ -222,90 +221,102 @@ engine.create_special_bonus_events(winner, winning_pattern, round_number, is_rou
 ## 反模式警告
 
 ### ❌ 禁止在高层重新实现规则
-```python
-# ❌ 错误: 在datongzi/ai中重新实现规则
-class AI:
-    def _can_beat(self, cards, current_play):
-        # 自己实现验证逻辑...
+```rust
+// ❌ 错误: 在datongzi/ai中重新实现规则
+impl AI {
+    fn can_beat(&self, cards: &[Card], current_play: &PlayPattern) -> bool {
+        // 自己实现验证逻辑...
+    }
+}
 
-# ✅ 正确: 依赖规则库
-from datongzi_rules import PlayValidator
-can_beat = PlayValidator.can_beat_play(cards, current_play)
+// ✅ 正确: 依赖规则库
+use datongzi_rules::PlayValidator;
+let can_beat = PlayValidator::can_beat_play(&cards, &current_play);
 ```
 
 ### ❌ 禁止多处生成合法出牌
-```python
-# ❌ 错误: 在AI中重复实现PlayGenerator
-class AI:
-    def _get_legal_moves(self, hand):
-        # 重新实现生成逻辑...
+```rust
+// ❌ 错误: 在AI中重复实现PlayGenerator
+impl AI {
+    fn get_legal_moves(&self, hand: &[Card]) -> Vec<Vec<Card>> {
+        // 重新实现生成逻辑...
+    }
+}
 
-# ✅ 正确: 使用PlayGenerator
-from datongzi_rules import PlayGenerator
-moves = PlayGenerator.generate_beating_plays_with_same_type_or_trump(hand, current_pattern)
+// ✅ 正确: 使用PlayGenerator
+use datongzi_rules::PlayGenerator;
+let moves = PlayGenerator::generate_beating_plays_with_same_type_or_trump(&hand, &current_pattern);
 ```
 
 ### ❌ 禁止在规则库实现AI策略
-```python
-# ❌ 错误: 在规则库实现复杂AI
-class HandEvaluator:
-    def choose_best_play(self, hand, game_state):
-        # 多步博弈推演...
+```rust
+// ❌ 错误: 在规则库实现复杂AI
+impl HandEvaluator {
+    fn choose_best_play(&self, hand: &[Card], game_state: &GameState) -> Vec<Card> {
+        // 多步博弈推演...
+    }
+}
 
-# ✅ 正确: 规则库只提供工具，AI在上层实现
-# datongzi/ai/strategy.py
-class AIStrategy:
-    def choose_best_play(self, valid_plays, hand, game_state):
-        # AI策略逻辑（基于 PlayGenerator 提供的 valid_plays）
+// ✅ 正确: 规则库只提供工具，AI在上层实现
+// datongzi/ai/strategy.rs
+impl AIStrategy {
+    fn choose_best_play(&self, valid_plays: &[Vec<Card>], hand: &[Card], game_state: &GameState) -> Vec<Card> {
+        // AI策略逻辑（基于 PlayGenerator 提供的 valid_plays）
+    }
+}
 ```
 
 ### ❌ 禁止在规则库管理游戏状态
-```python
-# ❌ 错误: 在规则库创建 Round/Game 类
-class Round:
-    plays: list[Play]
-    current_player: Player
+```rust
+// ❌ 错误: 在规则库创建 Round/Game 类
+struct Round {
+    plays: Vec<Play>,
+    current_player: Option<Player>,
+}
 
-# ✅ 正确: 状态管理在上层
-# datongzi/models/round.py
-class Round:
-    def __init__(self, players):
-        self.plays = []
-        self.scoring_engine = ScoreComputation(config)  # 只使用计分引擎
+// ✅ 正确: 状态管理在上层
+// datongzi/models/round.rs
+struct Round {
+    plays: Vec<Play>,
+    scoring_engine: ScoreComputation,  // 只使用计分引擎
+}
 ```
 
 ### ❌ 禁止硬编码规则变体
-```python
-# ❌ 错误: if-else判断规则模式
-if GAME_MODE == "standard":
-    # 标准规则...
-elif GAME_MODE == "simple":
-    # 简化规则...
+```rust
+// ❌ 错误: if-else判断规则模式
+let bonus = match game_mode {
+    "standard" => 100,
+    "simple" => 50,
+    _ => panic!(),
+};
 
-# ✅ 正确: 使用GameConfig参数化
-config = ConfigFactory.create_standard_3deck_3player()
+// ✅ 正确: 使用GameConfig参数化
+let config = ConfigFactory::create_standard_3deck_3player();
 ```
 
 ### ❌ 禁止创建上帝类
-```python
-# ❌ 错误: 一个类做所有事情
-class GameRules:
-    def recognize_pattern(self): pass
-    def validate_play(self): pass
-    def generate_moves(self): pass
-    def calculate_score(self): pass
+```rust
+// ❌ 错误: 一个类做所有事情
+struct GameRules;
+impl GameRules {
+    fn recognize_pattern(&self) {}
+    fn validate_play(&self) {}
+    fn generate_moves(&self) {}
+    fn calculate_score(&self) {}
+}
 
-# ✅ 正确: 拆分成专职类
-PatternRecognizer, PlayValidator, PlayGenerator, ScoreComputation
+// ✅ 正确: 拆分成专职类
+// PatternRecognizer, PlayValidator, PlayGenerator, ScoreComputation
 ```
 
 ## 代码修改检查清单
 
 **添加新牌型**:
 1. 在`PlayType`枚举添加新类型
-2. 在`PatternRecognizer.analyze_cards()`添加识别逻辑
+2. 在`PatternRecognizer::analyze_cards()`添加识别逻辑
 3. 在`PlayFormationValidator`添加验证方法
-4. 在`PlayValidator.can_beat_play()`添加对抗规则
+4. 在`PlayValidator::can_beat_play()`添加对抗规则
 5. 在`ScoreComputation`添加计分规则(如果有奖励)
 6. 添加单元测试
 
@@ -330,102 +341,87 @@ PatternRecognizer, PlayValidator, PlayGenerator, ScoreComputation
 
 ## 测试要求
 
-- 单元测试覆盖率目标: >85%（当前 88.66%）
 - 所有新功能必须包含单元测试
 - 修改现有功能必须通过所有现有测试
 - 性能敏感路径需要benchmark测试
-- 使用`python run.py check`验证所有测试和示例通过
-
-**测试统计**（2025-01-17）:
-- 单元测试: 258 个
-- 集成测试: 12 个
-- 总计: 270 个测试
-- 覆盖率: 88.66%
+- 使用`cargo test`验证所有测试通过
 
 ## 常见开发场景
 
 ### 场景1: 上层需要判断回合结束
 
 **错误做法**:
-```python
-# ❌ 在规则库添加 Round 类
-class Round:
-    def is_finished(self): ...
+```rust
+// ❌ 在规则库添加 Round 类
+struct Round {
+    fn is_finished(&self) -> bool { ... }
+}
 ```
 
 **正确做法**:
-```python
-# ✅ 在上层 datongzi 实现
-# datongzi/models/round.py
-class Round:
-    def is_finished(self):
-        # 判断逻辑...
+```rust
+// ✅ 在上层 datongzi 实现
+// datongzi/models/round.rs
+impl Round {
+    fn is_finished(&self) -> bool {
+        // 判断逻辑...
+    }
+}
 ```
 
 ### 场景2: 上层需要AI出牌建议
 
 **错误做法**:
-```python
-# ❌ 在规则库实现AI策略
-class HandEvaluator:
-    def suggest_best_play(self, hand, game_state):
-        # AI决策...
+```rust
+// ❌ 在规则库实现AI策略
+impl HandEvaluator {
+    fn suggest_best_play(&self, hand: &[Card], game_state: &GameState) -> Vec<Card> {
+        // AI决策...
+    }
+}
 ```
 
 **正确做法**:
-```python
-# ✅ 规则库只提供工具
-valid_plays = PlayGenerator.generate_beating_plays_with_same_type_or_trump(hand, current_pattern)
+```rust
+// ✅ 规则库只提供工具
+let valid_plays = PlayGenerator::generate_beating_plays_with_same_type_or_trump(&hand, &current_pattern);
 
-# ✅ AI策略在上层实现
-# datongzi/ai/strategy.py
-class AIStrategy:
-    def choose_best_play(self, valid_plays, hand, game_state):
-        # AI决策逻辑...
+// ✅ AI策略在上层实现
+// datongzi/ai/strategy.rs
+impl AIStrategy {
+    fn choose_best_play(&self, valid_plays: &[Vec<Card>], hand: &[Card], game_state: &GameState) -> Vec<Card> {
+        // AI决策逻辑...
+    }
+}
 ```
 
 ### 场景3: 上层需要计分
 
 **错误做法**:
-```python
-# ❌ 规则库自动跟踪回合状态
-class ScoreComputation:
-    def __init__(self):
-        self.round_cards = []  # ❌ 不应该维护状态
+```rust
+// ❌ 规则库自动跟踪回合状态
+struct ScoreComputation {
+    round_cards: Vec<Card>,  // ❌ 不应该维护状态
+}
 ```
 
 **正确做法**:
-```python
-# ✅ 上层收集数据，规则库只计算
-# datongzi/models/round.py
-class Round:
-    def end_round(self):
-        all_cards = [card for play in self.plays for card in play.cards]
-        winner_pattern = PatternRecognizer.analyze_cards(self.plays[-1].cards)
+```rust
+// ✅ 上层收集数据，规则库只计算
+// datongzi/models/round.rs
+impl Round {
+    fn end_round(&mut self) {
+        let all_cards: Vec<Card> = self.plays.iter()
+            .flat_map(|p| p.cards.iter().cloned())
+            .collect();
+        let winner_pattern = PatternRecognizer::analyze_cards(&self.plays.last().unwrap().cards);
 
-        # 调用计分引擎
-        engine.create_round_win_event(winner, all_cards, round_number)
-        engine.create_special_bonus_events(winner, winner_pattern, round_number, True)
+        // 调用计分引擎
+        engine.create_round_win_event(&winner, &all_cards, round_number);
+        engine.create_special_bonus_events(&winner, &winner_pattern, round_number, true);
+    }
+}
 ```
-
-## 重要更新日志
-
-### 2025-01-17 重构
-1. **删除模块**:
-   - `HandEvaluator` - 手牌评估应在AI层实现
-   - `PatternSuggester` - CV纠错应在前端实现
-
-2. **重命名**:
-   - `ScoringEngine` → `ScoreComputation` - 强调纯计算职责
-   - `engine.py` → `computation.py` - 文件名与类名一致
-
-3. **职责澄清**:
-   - `ScoreComputation` 是纯计算引擎，不管理状态
-   - 上层负责收集回合数据、判断回合结束
-
-4. **文档更新**:
-   - README.md: 完整API文档和使用示例
-   - CLAUDE.md: 架构原则和职责边界
 
 ## 参考文档
 
