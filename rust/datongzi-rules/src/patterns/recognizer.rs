@@ -161,55 +161,59 @@ impl PatternRecognizer {
         ))
     }
 
-    /// Check for triple pattern.
+    /// Check for triple pattern with optional kickers (0-2 cards).
+    /// Supports: 3 cards (bare), 4 cards (with 1), 5 cards (with 2)
     fn check_triple(cards: &[Card], rank_counts: &HashMap<Rank, usize>) -> Option<PlayPattern> {
-        if cards.len() != 3 || rank_counts.len() != 1 {
+        // Triple can be 3-5 cards (3 + 0/1/2 kickers)
+        if !(3..=5).contains(&cards.len()) {
             return None;
         }
 
-        let (&rank, &count) = rank_counts.iter().next()?;
-        if count != 3 {
-            return None;
-        }
+        // Must have exactly one rank with 3 cards
+        let triple_rank = rank_counts
+            .iter()
+            .find_map(|(&rank, &count)| if count == 3 { Some(rank) } else { None })?;
+
+        // Determine the pattern type based on total cards
+        let play_type = match cards.len() {
+            3 => PlayType::Triple,          // 3+0 (bare triple)
+            4 => PlayType::Triple,          // 3+1 (triple with one kicker)
+            5 => {
+                // 3+2: could be TripleWithTwo (pair) or Triple (two singles)
+                // Check if the kickers form a pair
+                let kicker_counts: Vec<usize> = rank_counts
+                    .iter()
+                    .filter(|(&r, _)| r != triple_rank)
+                    .map(|(_, &count)| count)
+                    .collect();
+
+                if kicker_counts.len() == 1 && kicker_counts[0] == 2 {
+                    PlayType::TripleWithTwo  // Kickers form a pair
+                } else {
+                    PlayType::Triple         // Kickers are singles
+                }
+            }
+            _ => return None,
+        };
 
         Some(PlayPattern::new(
-            PlayType::Triple,
-            rank,
+            play_type,
+            triple_rank,
             None,
             vec![],
-            3,
-            u32::from(rank.value()),
+            cards.len(),
+            u32::from(triple_rank.value()),
         ))
     }
 
-    /// Check for triple with two pattern (三带二).
+    /// Check for triple with two pattern (三带二) - DEPRECATED, now handled in check_triple
     fn check_triple_with_two(
         cards: &[Card],
         rank_counts: &HashMap<Rank, usize>,
     ) -> Option<PlayPattern> {
-        if cards.len() != 5 || rank_counts.len() != 2 {
-            return None;
-        }
-
-        let counts: Vec<usize> = rank_counts.values().copied().collect();
-        if !(counts.contains(&3) && counts.contains(&2)) {
-            return None;
-        }
-
-        // Find the triple rank
-        let triple_rank =
-            rank_counts
-                .iter()
-                .find_map(|(&rank, &count)| if count == 3 { Some(rank) } else { None })?;
-
-        Some(PlayPattern::new(
-            PlayType::TripleWithTwo,
-            triple_rank,
-            None,
-            vec![],
-            5,
-            u32::from(triple_rank.value()),
-        ))
+        // This is now handled by check_triple, but kept for backward compatibility
+        // Just delegate to check_triple
+        Self::check_triple(cards, rank_counts)
     }
 
     /// Check for airplane pattern (consecutive triples).
@@ -639,14 +643,14 @@ impl PlayValidator {
             if current_pattern.play_type != PlayType::Bomb {
                 return true; // Bomb beats non-bomb
             }
-            // Bomb vs Bomb: compare by rank first, then count
-            match new_pattern
-                .primary_rank
-                .value()
-                .cmp(&current_pattern.primary_rank.value())
-            {
+            // Bomb vs Bomb: compare by count first, then rank
+            // Example: 6张5 > 5张2 > 5张10 > 4张A
+            match new_pattern.card_count.cmp(&current_pattern.card_count) {
                 Ordering::Greater => return true,
-                Ordering::Equal => return new_pattern.card_count > current_pattern.card_count,
+                Ordering::Equal => {
+                    return new_pattern.primary_rank.value()
+                        > current_pattern.primary_rank.value()
+                }
                 Ordering::Less => return false,
             }
         }
