@@ -368,7 +368,10 @@ pub fn filter_consecutive_pairs(hand: &[Card]) -> Vec<Vec<Card>> {
     // Group by rank
     let mut rank_groups: HashMap<Rank, Vec<&Card>> = HashMap::new();
     for card in hand {
-        rank_groups.entry(card.rank).or_insert_with(Vec::new).push(card);
+        rank_groups
+            .entry(card.rank)
+            .or_insert_with(Vec::new)
+            .push(card);
     }
 
     // Get ranks that have at least 2 cards

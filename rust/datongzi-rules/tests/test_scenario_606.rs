@@ -66,27 +66,37 @@ fn test_scenario_606_hand_pattern_analysis() {
     // Check 1: 应该识别 ♦2×4 为 Tongzi (至少3张同花色同rank)
     let diamonds_two_tongzi = patterns.tongzi.iter().any(|tongzi| {
         tongzi.len() >= 3
-            && tongzi.iter().all(|c| c.rank == Rank::Two && c.suit == Suit::Diamonds)
+            && tongzi
+                .iter()
+                .all(|c| c.rank == Rank::Two && c.suit == Suit::Diamonds)
     });
     println!("  ✓ Has ♦2×3+ Tongzi: {}", diamonds_two_tongzi);
 
     // Check 2: 应该识别 [♥2, ♥2, ♣2] 为独立三张（或类似组合）
-    let has_mixed_two_triple = patterns.triples.iter().any(|triple| {
-        triple.len() == 3 && triple.iter().all(|c| c.rank == Rank::Two)
-    });
-    println!("  ✓ Has triple with Rank::Two (mixed suits): {}", has_mixed_two_triple);
+    let has_mixed_two_triple = patterns
+        .triples
+        .iter()
+        .any(|triple| triple.len() == 3 && triple.iter().all(|c| c.rank == Rank::Two));
+    println!(
+        "  ✓ Has triple with Rank::Two (mixed suits): {}",
+        has_mixed_two_triple
+    );
 
     // Check 3: 应该识别 ♣5×2 为对子
     let has_five_pair = patterns.pairs.iter().any(|pair| {
         pair.len() == 2
-            && pair.iter().all(|c| c.rank == Rank::Five && c.suit == Suit::Clubs)
+            && pair
+                .iter()
+                .all(|c| c.rank == Rank::Five && c.suit == Suit::Clubs)
     });
     println!("  ✓ Has ♣5×2 pair: {}", has_five_pair);
 
     // Check 4: 应该识别 ♦7×2 为对子
     let has_seven_pair = patterns.pairs.iter().any(|pair| {
         pair.len() == 2
-            && pair.iter().all(|c| c.rank == Rank::Seven && c.suit == Suit::Diamonds)
+            && pair
+                .iter()
+                .all(|c| c.rank == Rank::Seven && c.suit == Suit::Diamonds)
     });
     println!("  ✓ Has ♦7×2 pair: {}", has_seven_pair);
 

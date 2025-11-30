@@ -88,9 +88,9 @@ fn calculate_cost(block: &Block, take: usize, tactic: Tactic) -> f32 {
     } else if block.count >= 2 {
         // Split penalty based on remaining cards
         match block.count - take {
-            1 => 30.0,  // Left with single
-            2 => 20.0,  // Left with pair
-            _ => 10.0,  // Other
+            1 => 30.0, // Left with single
+            2 => 20.0, // Left with pair
+            _ => 10.0, // Other
         }
     } else {
         0.0
@@ -820,7 +820,11 @@ mod tests {
         let elapsed = start.elapsed();
 
         // Should complete in < 1ms for small hand
-        assert!(elapsed.as_micros() < 1000, "Took {:?}, expected < 1ms", elapsed);
+        assert!(
+            elapsed.as_micros() < 1000,
+            "Took {:?}, expected < 1ms",
+            elapsed
+        );
         assert!(!kickers.is_empty());
     }
 
@@ -836,8 +840,16 @@ mod tests {
 
         // Add 10 pairs (20 cards)
         let ranks = [
-            Rank::Six, Rank::Seven, Rank::Eight, Rank::Nine, Rank::Ten,
-            Rank::Jack, Rank::Queen, Rank::King, Rank::Ace, Rank::Two,
+            Rank::Six,
+            Rank::Seven,
+            Rank::Eight,
+            Rank::Nine,
+            Rank::Ten,
+            Rank::Jack,
+            Rank::Queen,
+            Rank::King,
+            Rank::Ace,
+            Rank::Two,
         ];
         for rank in ranks {
             hand.push(make_card(Suit::Spades, rank));
@@ -855,7 +867,11 @@ mod tests {
         let elapsed = start.elapsed();
 
         // Should complete in < 10ms for medium hand
-        assert!(elapsed.as_millis() < 10, "Took {:?}, expected < 10ms", elapsed);
+        assert!(
+            elapsed.as_millis() < 10,
+            "Took {:?}, expected < 10ms",
+            elapsed
+        );
         assert_eq!(kickers.len(), 4);
     }
 

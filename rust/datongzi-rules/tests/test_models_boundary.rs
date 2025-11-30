@@ -306,23 +306,29 @@ fn test_game_config_default() {
 fn test_game_config_custom_valid() {
     // 2人对战
     let config2p = GameConfig::new(
-        2,                   // 2副牌
-        2,                   // 2人
-        47,                  // 每人47张
-        10,                  // 铺底10张
-        vec![50, -50],       // 完成奖励
-        150, 250, 350, 500,  // 特殊奖励
+        2,             // 2副牌
+        2,             // 2人
+        47,            // 每人47张
+        10,            // 铺底10张
+        vec![50, -50], // 完成奖励
+        150,
+        250,
+        350,
+        500, // 特殊奖励
     );
     assert!(config2p.validate().is_ok());
 
     // 4副牌4人
     let config4p = GameConfig::new(
-        4,                         // 4副牌
-        4,                         // 4人
-        46,                        // 每人46张
-        16,                        // 铺底16张
-        vec![100, -30, -50, -70],  // 完成奖励
-        100, 200, 300, 400,        // 特殊奖励
+        4,                        // 4副牌
+        4,                        // 4人
+        46,                       // 每人46张
+        16,                       // 铺底16张
+        vec![100, -30, -50, -70], // 完成奖励
+        100,
+        200,
+        300,
+        400, // 特殊奖励
     );
     assert!(config4p.validate().is_ok());
 }
@@ -330,14 +336,7 @@ fn test_game_config_custom_valid() {
 #[test]
 fn test_game_config_invalid_num_decks() {
     // 0副牌（无效）
-    let config = GameConfig::new(
-        0,
-        3,
-        44,
-        9,
-        vec![100, -40, -60],
-        100, 200, 300, 400,
-    );
+    let config = GameConfig::new(0, 3, 44, 9, vec![100, -40, -60], 100, 200, 300, 400);
     assert!(config.validate().is_err());
 
     // 负数副牌（无效）
@@ -347,25 +346,11 @@ fn test_game_config_invalid_num_decks() {
 #[test]
 fn test_game_config_invalid_num_players() {
     // 1人游戏（无效，至少2人）
-    let config = GameConfig::new(
-        3,
-        1,
-        44,
-        9,
-        vec![100],
-        100, 200, 300, 400,
-    );
+    let config = GameConfig::new(3, 1, 44, 9, vec![100], 100, 200, 300, 400);
     assert!(config.validate().is_err());
 
     // 0人游戏（无效）
-    let config2 = GameConfig::new(
-        3,
-        0,
-        44,
-        9,
-        vec![],
-        100, 200, 300, 400,
-    );
+    let config2 = GameConfig::new(3, 0, 44, 9, vec![], 100, 200, 300, 400);
     assert!(config2.validate().is_err());
 }
 
@@ -378,18 +363,24 @@ fn test_game_config_invalid_card_distribution() {
         20, // 每人20张 = 60张 > 52张
         0,
         vec![100, -40, -60],
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert!(config.validate().is_err());
 
     // 手牌数 + 铺底 > 总牌数
     let config2 = GameConfig::new(
-        1,   // 1副牌 = 52张
-        2,   // 2人
-        20,  // 每人20张 = 40张
-        20,  // 铺底20张，总共60张 > 52张
+        1,  // 1副牌 = 52张
+        2,  // 2人
+        20, // 每人20张 = 40张
+        20, // 铺底20张，总共60张 > 52张
         vec![100, -100],
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert!(config2.validate().is_err());
 }
@@ -401,11 +392,14 @@ fn test_game_config_finish_bonus_length_mismatch() {
     // 长度不足：2个奖励但有3人
     let config = GameConfig::new(
         3,
-        3,  // 3人
+        3, // 3人
         41,
         9,
         vec![100, -40], // 只有2个奖励
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert!(config.validate().is_err());
 
@@ -416,7 +410,10 @@ fn test_game_config_finish_bonus_length_mismatch() {
         41,
         9,
         vec![], // 空列表
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert!(config2.validate().is_err());
 
@@ -427,7 +424,10 @@ fn test_game_config_finish_bonus_length_mismatch() {
         41,
         9,
         vec![100, -40, -60, -100], // 4个奖励
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert!(config3.validate().is_err());
 
@@ -438,7 +438,10 @@ fn test_game_config_finish_bonus_length_mismatch() {
         41,
         9,
         vec![100, -40, -60], // 3个奖励
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert!(config4.validate().is_ok());
 }
@@ -446,24 +449,20 @@ fn test_game_config_finish_bonus_length_mismatch() {
 #[test]
 fn test_game_config_edge_cases() {
     // 最小有效配置：2人，1副牌，每人26张，0张铺底
-    let min_config = GameConfig::new(
-        1,
-        2,
-        26,
-        0,
-        vec![50, -50],
-        100, 200, 300, 400,
-    );
+    let min_config = GameConfig::new(1, 2, 26, 0, vec![50, -50], 100, 200, 300, 400);
     assert!(min_config.validate().is_ok());
 
     // 大型游戏：4副牌，4人（最多4人）
     let large_config = GameConfig::new(
         4,
-        4,  // 最多4人
+        4, // 最多4人
         48,
         16,
         vec![100, -20, -40, -80],
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert!(large_config.validate().is_ok());
 }
@@ -471,42 +470,21 @@ fn test_game_config_edge_cases() {
 #[test]
 fn test_game_config_zero_bonuses() {
     // 所有奖励分为0（有效，但不常见）
-    let config = GameConfig::new(
-        3,
-        3,
-        44,
-        9,
-        vec![0, 0, 0],
-        0, 0, 0, 0,
-    );
+    let config = GameConfig::new(3, 3, 44, 9, vec![0, 0, 0], 0, 0, 0, 0);
     assert!(config.validate().is_ok());
 }
 
 #[test]
 fn test_game_config_negative_bonuses() {
     // 所有完成奖励为负（罕见但有效）
-    let config = GameConfig::new(
-        3,
-        3,
-        44,
-        9,
-        vec![-100, -200, -300],
-        100, 200, 300, 400,
-    );
+    let config = GameConfig::new(3, 3, 44, 9, vec![-100, -200, -300], 100, 200, 300, 400);
     assert!(config.validate().is_ok());
 }
 
 #[test]
 fn test_game_config_removed_ranks_default() {
     // 测试默认配置去掉3和4
-    let config = GameConfig::new(
-        3,
-        3,
-        41,
-        9,
-        vec![100, -40, -60],
-        100, 200, 300, 400,
-    );
+    let config = GameConfig::new(3, 3, 41, 9, vec![100, -40, -60], 100, 200, 300, 400);
     // new()默认去掉3和4
     assert_eq!(config.removed_ranks(), &[Rank::Three, Rank::Four]);
 }
@@ -521,7 +499,10 @@ fn test_game_config_removed_ranks_custom() {
         8,
         vec![Rank::Three, Rank::Four, Rank::Five, Rank::Six], // 去掉3、4、5、6
         vec![100, -100],
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert_eq!(
         config.removed_ranks(),
@@ -539,7 +520,10 @@ fn test_game_config_removed_ranks_empty() {
         0,
         vec![], // 不去掉任何牌
         vec![50, -50],
-        100, 200, 300, 400,
+        100,
+        200,
+        300,
+        400,
     );
     assert_eq!(config.removed_ranks(), &[]);
 }

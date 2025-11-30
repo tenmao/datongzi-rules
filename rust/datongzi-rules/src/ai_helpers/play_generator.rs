@@ -102,8 +102,8 @@ impl PlayGenerator {
         // Generate triples (with identical play filtering)
         all_plays.extend(filter_triples(hand));
 
-        // Generate triple with two
-        all_plays.extend(Self::_generate_triple_with_two(hand));
+        // Generate triple with kickers (1-2 cards)
+        all_plays.extend(Self::_generate_triple_with_kickers(hand));
 
         // Generate airplanes
         all_plays.extend(Self::_generate_airplanes(hand));
@@ -198,13 +198,8 @@ impl PlayGenerator {
                 ));
             }
             PlayType::Triple => {
+                // Triple can have 0-2 kickers, generate matching patterns
                 beating_plays.extend(Self::_generate_higher_triples(hand, current_pattern));
-            }
-            PlayType::TripleWithTwo => {
-                beating_plays.extend(Self::_generate_higher_triple_with_two(
-                    hand,
-                    current_pattern,
-                ));
             }
             PlayType::Airplane => {
                 beating_plays.extend(Self::_generate_higher_airplanes(hand, current_pattern));
@@ -301,8 +296,8 @@ impl PlayGenerator {
         // Count triples
         count += Self::_generate_triples(hand).len();
 
-        // Count triple with two
-        count += Self::_generate_triple_with_two(hand).len();
+        // Count triple with kickers
+        count += Self::_generate_triple_with_kickers(hand).len();
 
         // Count airplanes
         count += Self::_generate_airplanes(hand).len();
@@ -439,54 +434,55 @@ impl PlayGenerator {
         triples
     }
 
-    /// Generate all valid triple with two combinations.
-    fn _generate_triple_with_two(hand: &[Card]) -> Vec<Vec<Card>> {
+    /// Generate all valid triple with kicker combinations (1-2 kickers).
+    ///
+    /// According to GAME_RULE.md: 三张牌可以带牌（0-2张）
+    /// This generates Triple with 1 or 2 kickers (any cards, not just pairs).
+    fn _generate_triple_with_kickers(hand: &[Card]) -> Vec<Vec<Card>> {
         let mut results = Vec::new();
         let rank_groups = Self::_group_by_rank(hand);
 
-        // Find all triples
+        // Find all ranks with at least 3 cards (can form triple)
         let triple_ranks: Vec<Rank> = rank_groups
             .iter()
             .filter(|(_r, cards)| cards.len() >= 3)
             .map(|(r, _cards)| *r)
             .collect();
 
-        // Find all pairs (excluding triple ranks, unless rank has 5+ cards)
-        let mut pair_ranks: Vec<Rank> = rank_groups
-            .iter()
-            .filter(|(r, cards)| cards.len() >= 2 && !triple_ranks.contains(r))
-            .map(|(r, _cards)| *r)
-            .collect();
-
-        // Also check if triple rank has enough cards for both triple and pair
-        pair_ranks.extend(
-            triple_ranks
-                .iter()
-                .filter(|r| rank_groups[r].len() >= 5)
-                .copied(),
-        );
-
         for triple_rank in &triple_ranks {
-            let triple_cards = &rank_groups[triple_rank][0..3];
+            // Get the first 3 cards of this rank as the triple
+            let triple_cards: Vec<Card> = rank_groups[triple_rank][0..3].to_vec();
 
-            for pair_rank in &pair_ranks {
-                let pair_cards = if pair_rank == triple_rank {
-                    // Need 5 cards of same rank
-                    if rank_groups[pair_rank].len() >= 5 {
-                        &rank_groups[pair_rank][3..5]
-                    } else {
-                        continue;
-                    }
-                } else {
-                    &rank_groups[pair_rank][0..2]
-                };
+            // Get all available kicker cards (excluding the triple cards)
+            let available_kickers: Vec<Card> = hand
+                .iter()
+                .copied()
+                .filter(|c| !triple_cards.contains(c))
+                .collect();
 
-                let mut combo = triple_cards.to_vec();
-                combo.extend_from_slice(pair_cards);
+            // Generate triple with 1 kicker
+            for kicker in &available_kickers {
+                let mut combo = triple_cards.clone();
+                combo.push(*kicker);
 
                 if let Some(pattern) = PatternRecognizer::analyze_cards(&combo) {
-                    if pattern.play_type == PlayType::TripleWithTwo {
+                    if pattern.play_type == PlayType::Triple && pattern.card_count == 4 {
                         results.push(combo);
+                    }
+                }
+            }
+
+            // Generate triple with 2 kickers
+            for i in 0..available_kickers.len() {
+                for j in i + 1..available_kickers.len() {
+                    let mut combo = triple_cards.clone();
+                    combo.push(available_kickers[i]);
+                    combo.push(available_kickers[j]);
+
+                    if let Some(pattern) = PatternRecognizer::analyze_cards(&combo) {
+                        if pattern.play_type == PlayType::Triple && pattern.card_count == 5 {
+                            results.push(combo);
+                        }
                     }
                 }
             }
@@ -823,23 +819,6 @@ impl PlayGenerator {
             .into_iter()
             .filter(|triple| {
                 PatternRecognizer::analyze_cards(triple)
-                    .map_or(false, |p| p.primary_rank.value() > current_rank.value())
-            })
-            .collect()
-    }
-
-    /// Generate triple-with-two higher than current triple-with-two.
-    fn _generate_higher_triple_with_two(
-        hand: &[Card],
-        current_pattern: &PlayPattern,
-    ) -> Vec<Vec<Card>> {
-        let all_triple_with_two = Self::_generate_triple_with_two(hand);
-        let current_rank = current_pattern.primary_rank;
-
-        all_triple_with_two
-            .into_iter()
-            .filter(|combo| {
-                PatternRecognizer::analyze_cards(combo)
                     .map_or(false, |p| p.primary_rank.value() > current_rank.value())
             })
             .collect()

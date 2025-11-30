@@ -298,3 +298,190 @@ fn test_count_all_plays_empty_hand() {
 
     assert_eq!(count, 0);
 }
+
+// ============================================================================
+// Triple with Kickers Tests
+// ============================================================================
+
+#[test]
+fn test_generate_triple_with_one_kicker() {
+    // Test triple with 1 kicker generation
+    let hand = vec![
+        Card::new(Suit::Spades, Rank::Jack),
+        Card::new(Suit::Hearts, Rank::Jack),
+        Card::new(Suit::Clubs, Rank::Jack),
+        Card::new(Suit::Diamonds, Rank::Five),
+    ];
+
+    let plays = PlayGenerator::generate_all_plays(&hand, 1000).unwrap();
+
+    // Should have triples with 1 kicker
+    let triple_with_one: Vec<_> = plays
+        .iter()
+        .filter(|p| {
+            p.len() == 4
+                && PatternRecognizer::analyze_cards(p).map_or(false, |pat| {
+                    pat.play_type == PlayType::Triple && pat.card_count == 4
+                })
+        })
+        .collect();
+
+    // Should generate JJJ+5 (1 combination)
+    assert!(!triple_with_one.is_empty());
+}
+
+#[test]
+fn test_generate_triple_with_two_kickers() {
+    // Test triple with 2 kickers generation (any 2 cards, not just pairs)
+    let hand = vec![
+        Card::new(Suit::Spades, Rank::Jack),
+        Card::new(Suit::Hearts, Rank::Jack),
+        Card::new(Suit::Clubs, Rank::Jack),
+        Card::new(Suit::Diamonds, Rank::Five),
+        Card::new(Suit::Spades, Rank::Six),
+    ];
+
+    let plays = PlayGenerator::generate_all_plays(&hand, 1000).unwrap();
+
+    // Should have triples with 2 kickers
+    let triple_with_two: Vec<_> = plays
+        .iter()
+        .filter(|p| {
+            p.len() == 5
+                && PatternRecognizer::analyze_cards(p).map_or(false, |pat| {
+                    pat.play_type == PlayType::Triple && pat.card_count == 5
+                })
+        })
+        .collect();
+
+    // Should generate JJJ+5+6 (kickers are 5 and 6, not a pair)
+    assert!(!triple_with_two.is_empty());
+}
+
+#[test]
+fn test_generate_triple_with_mixed_kickers() {
+    // Test with hand that can have various kicker combinations
+    let hand = vec![
+        Card::new(Suit::Spades, Rank::King),
+        Card::new(Suit::Hearts, Rank::King),
+        Card::new(Suit::Clubs, Rank::King),
+        Card::new(Suit::Diamonds, Rank::Three),
+        Card::new(Suit::Spades, Rank::Four),
+        Card::new(Suit::Hearts, Rank::Five),
+    ];
+
+    let plays = PlayGenerator::generate_all_plays(&hand, 1000).unwrap();
+
+    // Count different triple variants
+    let bare_triples: Vec<_> = plays
+        .iter()
+        .filter(|p| {
+            p.len() == 3
+                && PatternRecognizer::analyze_cards(p)
+                    .map_or(false, |pat| pat.play_type == PlayType::Triple)
+        })
+        .collect();
+
+    let triple_with_one: Vec<_> = plays
+        .iter()
+        .filter(|p| {
+            p.len() == 4
+                && PatternRecognizer::analyze_cards(p)
+                    .map_or(false, |pat| pat.play_type == PlayType::Triple)
+        })
+        .collect();
+
+    let triple_with_two: Vec<_> = plays
+        .iter()
+        .filter(|p| {
+            p.len() == 5
+                && PatternRecognizer::analyze_cards(p)
+                    .map_or(false, |pat| pat.play_type == PlayType::Triple)
+        })
+        .collect();
+
+    // Should have 1 bare triple (KKK)
+    assert_eq!(bare_triples.len(), 1);
+
+    // Should have 3 triple-with-one (KKK+3, KKK+4, KKK+5)
+    assert_eq!(triple_with_one.len(), 3);
+
+    // Should have C(3,2) = 3 triple-with-two combinations
+    assert_eq!(triple_with_two.len(), 3);
+}
+
+#[test]
+fn test_generate_beating_triple_ignores_kicker_count() {
+    // When beating a triple, any triple with higher rank should beat
+    // regardless of kicker count
+    let hand = vec![
+        Card::new(Suit::Spades, Rank::King),
+        Card::new(Suit::Hearts, Rank::King),
+        Card::new(Suit::Clubs, Rank::King),
+        Card::new(Suit::Diamonds, Rank::Three),
+    ];
+
+    // Current play: triple five with two kickers
+    let current_play = vec![
+        Card::new(Suit::Spades, Rank::Five),
+        Card::new(Suit::Hearts, Rank::Five),
+        Card::new(Suit::Clubs, Rank::Five),
+        Card::new(Suit::Diamonds, Rank::Seven),
+        Card::new(Suit::Spades, Rank::Eight),
+    ];
+    let current_pattern = PatternRecognizer::analyze_cards(&current_play).unwrap();
+
+    let beating_plays =
+        PlayGenerator::generate_beating_plays_with_same_type_or_trump(&hand, &current_pattern);
+
+    // Should include bare triple KKK and triple KKK+3
+    // Because KKK > 555 regardless of kicker count
+    assert!(!beating_plays.is_empty());
+
+    // Check that we have triples beating the current play
+    for play in &beating_plays {
+        if let Some(pattern) = PatternRecognizer::analyze_cards(play) {
+            if pattern.play_type == PlayType::Triple {
+                assert!(
+                    pattern.primary_rank.value() > current_pattern.primary_rank.value(),
+                    "Triple should have higher rank"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn test_generate_beating_bare_triple_with_kickers() {
+    // Should be able to beat a bare triple with a triple+kickers
+    let hand = vec![
+        Card::new(Suit::Spades, Rank::Ace),
+        Card::new(Suit::Hearts, Rank::Ace),
+        Card::new(Suit::Clubs, Rank::Ace),
+        Card::new(Suit::Diamonds, Rank::Three),
+        Card::new(Suit::Spades, Rank::Four),
+    ];
+
+    // Current play: bare triple five
+    let current_play = vec![
+        Card::new(Suit::Spades, Rank::Five),
+        Card::new(Suit::Hearts, Rank::Five),
+        Card::new(Suit::Clubs, Rank::Five),
+    ];
+    let current_pattern = PatternRecognizer::analyze_cards(&current_play).unwrap();
+
+    let beating_plays =
+        PlayGenerator::generate_beating_plays_with_same_type_or_trump(&hand, &current_pattern);
+
+    // Should have triples (bare, +1 kicker, +2 kickers)
+    assert!(!beating_plays.is_empty());
+
+    // Verify all are valid triples with higher rank
+    for play in &beating_plays {
+        if let Some(pattern) = PatternRecognizer::analyze_cards(play) {
+            if pattern.play_type == PlayType::Triple {
+                assert_eq!(pattern.primary_rank, Rank::Ace);
+            }
+        }
+    }
+}

@@ -66,10 +66,6 @@ impl PatternRecognizer {
         }
 
         // Check for basic patterns
-        if let Some(pattern) = Self::check_triple_with_two(cards, &rank_counts) {
-            return Some(pattern);
-        }
-
         if let Some(pattern) = Self::check_triple(cards, &rank_counts) {
             return Some(pattern);
         }
@@ -170,31 +166,17 @@ impl PatternRecognizer {
         }
 
         // Must have exactly one rank with 3 cards
-        let triple_rank = rank_counts
-            .iter()
-            .find_map(|(&rank, &count)| if count == 3 { Some(rank) } else { None })?;
+        let triple_rank =
+            rank_counts
+                .iter()
+                .find_map(|(&rank, &count)| if count == 3 { Some(rank) } else { None })?;
 
-        // Determine the pattern type based on total cards
-        let play_type = match cards.len() {
-            3 => PlayType::Triple,          // 3+0 (bare triple)
-            4 => PlayType::Triple,          // 3+1 (triple with one kicker)
-            5 => {
-                // 3+2: could be TripleWithTwo (pair) or Triple (two singles)
-                // Check if the kickers form a pair
-                let kicker_counts: Vec<usize> = rank_counts
-                    .iter()
-                    .filter(|(&r, _)| r != triple_rank)
-                    .map(|(_, &count)| count)
-                    .collect();
-
-                if kicker_counts.len() == 1 && kicker_counts[0] == 2 {
-                    PlayType::TripleWithTwo  // Kickers form a pair
-                } else {
-                    PlayType::Triple         // Kickers are singles
-                }
-            }
-            _ => return None,
-        };
+        // Triple with 0-2 kickers: 3, 4, or 5 cards total
+        // All recognized as Triple (三张可带0-2张任意牌)
+        if !(3..=5).contains(&cards.len()) {
+            return None;
+        }
+        let play_type = PlayType::Triple;
 
         Some(PlayPattern::new(
             play_type,
@@ -204,16 +186,6 @@ impl PatternRecognizer {
             cards.len(),
             u32::from(triple_rank.value()),
         ))
-    }
-
-    /// Check for triple with two pattern (三带二) - DEPRECATED, now handled in check_triple
-    fn check_triple_with_two(
-        cards: &[Card],
-        rank_counts: &HashMap<Rank, usize>,
-    ) -> Option<PlayPattern> {
-        // This is now handled by check_triple, but kept for backward compatibility
-        // Just delegate to check_triple
-        Self::check_triple(cards, rank_counts)
     }
 
     /// Check for airplane pattern (consecutive triples).
@@ -648,8 +620,7 @@ impl PlayValidator {
             match new_pattern.card_count.cmp(&current_pattern.card_count) {
                 Ordering::Greater => return true,
                 Ordering::Equal => {
-                    return new_pattern.primary_rank.value()
-                        > current_pattern.primary_rank.value()
+                    return new_pattern.primary_rank.value() > current_pattern.primary_rank.value()
                 }
                 Ordering::Less => return false,
             }
@@ -664,10 +635,14 @@ impl PlayValidator {
             return false;
         }
 
-        // For consecutive patterns, must have same length
+        // For Triple: kicker count doesn't matter, only compare main rank
+        // 三张比较只看主牌点数，带牌数量不影响（三张J可以打三张5带2张）
+
+        // For Airplane/AirplaneWithWings: must have same chain length (number of consecutive triples)
+        // 飞机比较只看连续三张的数量和点数，带牌数量不影响
         if matches!(
             new_pattern.play_type,
-            PlayType::ConsecutivePairs | PlayType::Airplane | PlayType::AirplaneWithWings
+            PlayType::Airplane | PlayType::AirplaneWithWings
         ) {
             let new_ranks = &new_pattern.secondary_ranks;
             let current_ranks = &current_pattern.secondary_ranks;
@@ -676,7 +651,16 @@ impl PlayValidator {
             }
         }
 
-        // Compare by strength
+        // For ConsecutivePairs: must have same length
+        if new_pattern.play_type == PlayType::ConsecutivePairs {
+            let new_ranks = &new_pattern.secondary_ranks;
+            let current_ranks = &current_pattern.secondary_ranks;
+            if new_ranks.len() != current_ranks.len() {
+                return false;
+            }
+        }
+
+        // Compare by strength (primary_rank for most patterns)
         new_pattern.strength > current_pattern.strength
     }
 }

@@ -10,9 +10,19 @@ use datongzi_rules::{Card, PatternRecognizer, PlayType, PlayValidator, Rank, Sui
 fn test_recognize_single_all_ranks() {
     // 测试所有牌面的单张
     let ranks = [
-        Rank::Three, Rank::Four, Rank::Five, Rank::Six, Rank::Seven,
-        Rank::Eight, Rank::Nine, Rank::Ten, Rank::Jack, Rank::Queen,
-        Rank::King, Rank::Ace, Rank::Two,
+        Rank::Three,
+        Rank::Four,
+        Rank::Five,
+        Rank::Six,
+        Rank::Seven,
+        Rank::Eight,
+        Rank::Nine,
+        Rank::Ten,
+        Rank::Jack,
+        Rank::Queen,
+        Rank::King,
+        Rank::Ace,
+        Rank::Two,
     ];
 
     for rank in ranks {
@@ -54,7 +64,11 @@ fn test_single_straight_not_allowed() {
     if let Some(p) = pattern {
         // 如果能识别，至少不应该是某种"顺子"类型
         // 当前实现应该返回None或者识别为其他无效牌型
-        assert_ne!(p.play_type, PlayType::Single, "单牌顺子不应该被识别为合法牌型");
+        assert_ne!(
+            p.play_type,
+            PlayType::Single,
+            "单牌顺子不应该被识别为合法牌型"
+        );
     }
 }
 
@@ -91,16 +105,23 @@ fn test_single_straight_various_lengths_not_allowed() {
 fn test_recognize_pair_all_ranks() {
     // 测试所有牌面的对子
     let ranks = [
-        Rank::Three, Rank::Four, Rank::Five, Rank::Six, Rank::Seven,
-        Rank::Eight, Rank::Nine, Rank::Ten, Rank::Jack, Rank::Queen,
-        Rank::King, Rank::Ace, Rank::Two,
+        Rank::Three,
+        Rank::Four,
+        Rank::Five,
+        Rank::Six,
+        Rank::Seven,
+        Rank::Eight,
+        Rank::Nine,
+        Rank::Ten,
+        Rank::Jack,
+        Rank::Queen,
+        Rank::King,
+        Rank::Ace,
+        Rank::Two,
     ];
 
     for rank in ranks {
-        let cards = vec![
-            Card::new(Suit::Spades, rank),
-            Card::new(Suit::Hearts, rank),
-        ];
+        let cards = vec![Card::new(Suit::Spades, rank), Card::new(Suit::Hearts, rank)];
         let pattern = PatternRecognizer::analyze_cards(&cards);
         assert!(pattern.is_some());
         if let Some(p) = pattern {
@@ -275,16 +296,19 @@ fn test_triple_with_one_vs_triple_bare() {
     ];
 
     // J-J-J-6 应该能打 5-5-5
-    assert!(PlayValidator::can_beat_play(&triple_with_one, Some(&bare_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &triple_with_one,
+        Some(&bare_pattern)
+    ));
 }
 
 // ============================================================================
-// PatternRecognizer 边界测试 - TripleWithTwo
+// PatternRecognizer 边界测试 - Triple with kickers
 // ============================================================================
 
 #[test]
-fn test_recognize_triple_with_two() {
-    // 三带二（手葫芦）
+fn test_recognize_triple_with_two_kickers() {
+    // 三张带2张（三带二现在统一为Triple）
     let cards = vec![
         Card::new(Suit::Spades, Rank::Jack),
         Card::new(Suit::Hearts, Rank::Jack),
@@ -294,12 +318,13 @@ fn test_recognize_triple_with_two() {
     ];
     let pattern = PatternRecognizer::analyze_cards(&cards);
     assert!(pattern.is_some());
-    assert_eq!(pattern.unwrap().play_type, PlayType::TripleWithTwo);
+    // Now all triples with 0-2 kickers are recognized as Triple
+    assert_eq!(pattern.unwrap().play_type, PlayType::Triple);
 }
 
 #[test]
 fn test_triple_with_three_invalid() {
-    // 三张带3张（6张）- 应该不是Triple或TripleWithTwo
+    // 三张带3张（6张）- 应该不是Triple
     // 这可能被识别为其他牌型（如飞机），或者无法识别
     let cards = vec![
         Card::new(Suit::Spades, Rank::Jack),
@@ -310,10 +335,9 @@ fn test_triple_with_three_invalid() {
         Card::new(Suit::Clubs, Rank::Five),
     ];
     let pattern = PatternRecognizer::analyze_cards(&cards);
-    // 应该被识别为飞机或其他，不是Triple/TripleWithTwo
+    // 应该被识别为飞机或其他，不是Triple（Triple只能带0-2张）
     if let Some(p) = pattern {
         assert_ne!(p.play_type, PlayType::Triple, "三张带3张不应该是 Triple");
-        assert_ne!(p.play_type, PlayType::TripleWithTwo, "三张带3张不应该是 TripleWithTwo");
     }
 }
 
@@ -330,10 +354,9 @@ fn test_triple_with_four_invalid() {
         Card::new(Suit::Diamonds, Rank::Eight),
     ];
     let pattern = PatternRecognizer::analyze_cards(&cards);
-    // 应该无法识别或不是Triple相关
+    // 应该无法识别或不是Triple相关（Triple只能带0-2张）
     if let Some(p) = pattern {
         assert_ne!(p.play_type, PlayType::Triple, "三张带4张不应该是 Triple");
-        assert_ne!(p.play_type, PlayType::TripleWithTwo, "三张带4张不应该是 TripleWithTwo");
     }
 }
 
@@ -350,7 +373,6 @@ fn test_two_singles_and_one_pair_not_triple() {
     // 不应该是Triple
     if let Some(p) = pattern {
         assert_ne!(p.play_type, PlayType::Triple);
-        assert_ne!(p.play_type, PlayType::TripleWithTwo);
     }
 }
 
@@ -537,7 +559,10 @@ fn test_airplane_with_wings_vs_same_type() {
     ];
 
     // K-A 飞机带翅膀 应该能打 J-Q 飞机带翅膀
-    assert!(PlayValidator::can_beat_play(&high_airplane_with_wings, Some(&low_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &high_airplane_with_wings,
+        Some(&low_pattern)
+    ));
 }
 
 #[test]
@@ -560,7 +585,11 @@ fn test_airplane_with_too_many_wings_invalid() {
     let pattern = PatternRecognizer::analyze_cards(&cards);
     // 应该无法识别为AirplaneWithWings（翅膀太多）
     if let Some(p) = pattern {
-        assert_ne!(p.play_type, PlayType::AirplaneWithWings, "翅膀太多，不应该是 AirplaneWithWings");
+        assert_ne!(
+            p.play_type,
+            PlayType::AirplaneWithWings,
+            "翅膀太多，不应该是 AirplaneWithWings"
+        );
     }
 }
 
@@ -580,7 +609,11 @@ fn test_airplane_with_too_few_wings_becomes_invalid() {
     let pattern = PatternRecognizer::analyze_cards(&cards);
     // 应该无法识别为AirplaneWithWings（翅膀太少）
     if let Some(p) = pattern {
-        assert_ne!(p.play_type, PlayType::AirplaneWithWings, "翅膀太少，不应该是 AirplaneWithWings");
+        assert_ne!(
+            p.play_type,
+            PlayType::AirplaneWithWings,
+            "翅膀太少，不应该是 AirplaneWithWings"
+        );
     }
 }
 
@@ -598,8 +631,16 @@ fn test_non_consecutive_triples_not_airplane() {
     let pattern = PatternRecognizer::analyze_cards(&cards);
     // J和K不连续（中间有Q），不应该是飞机
     if let Some(p) = pattern {
-        assert_ne!(p.play_type, PlayType::Airplane, "不连续的三张不应该是 Airplane");
-        assert_ne!(p.play_type, PlayType::AirplaneWithWings, "不连续的三张不应该是 AirplaneWithWings");
+        assert_ne!(
+            p.play_type,
+            PlayType::Airplane,
+            "不连续的三张不应该是 Airplane"
+        );
+        assert_ne!(
+            p.play_type,
+            PlayType::AirplaneWithWings,
+            "不连续的三张不应该是 AirplaneWithWings"
+        );
     }
 }
 
@@ -705,9 +746,19 @@ fn test_recognize_tongzi_all_suits() {
 fn test_recognize_tongzi_all_ranks() {
     // 测试所有牌面的筒子
     let ranks = [
-        Rank::Three, Rank::Four, Rank::Five, Rank::Six, Rank::Seven,
-        Rank::Eight, Rank::Nine, Rank::Ten, Rank::Jack, Rank::Queen,
-        Rank::King, Rank::Ace, Rank::Two,
+        Rank::Three,
+        Rank::Four,
+        Rank::Five,
+        Rank::Six,
+        Rank::Seven,
+        Rank::Eight,
+        Rank::Nine,
+        Rank::Ten,
+        Rank::Jack,
+        Rank::Queen,
+        Rank::King,
+        Rank::Ace,
+        Rank::Two,
     ];
 
     for rank in ranks {
@@ -753,9 +804,19 @@ fn test_tongzi_vs_triple() {
 fn test_recognize_dizha_all_ranks() {
     // 测试所有牌面的地炸
     let ranks = [
-        Rank::Three, Rank::Four, Rank::Five, Rank::Six, Rank::Seven,
-        Rank::Eight, Rank::Nine, Rank::Ten, Rank::Jack, Rank::Queen,
-        Rank::King, Rank::Ace, Rank::Two,
+        Rank::Three,
+        Rank::Four,
+        Rank::Five,
+        Rank::Six,
+        Rank::Seven,
+        Rank::Eight,
+        Rank::Nine,
+        Rank::Ten,
+        Rank::Jack,
+        Rank::Queen,
+        Rank::King,
+        Rank::Ace,
+        Rank::Two,
     ];
 
     for rank in ranks {
@@ -844,8 +905,14 @@ fn test_validator_single_beats_single() {
     let low = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::Five)]).unwrap();
     let high = PatternRecognizer::analyze_cards(&[Card::new(Suit::Spades, Rank::King)]).unwrap();
 
-    assert!(PlayValidator::can_beat_play(&[Card::new(Suit::Spades, Rank::King)], Some(&low)));
-    assert!(!PlayValidator::can_beat_play(&[Card::new(Suit::Spades, Rank::Five)], Some(&high)));
+    assert!(PlayValidator::can_beat_play(
+        &[Card::new(Suit::Spades, Rank::King)],
+        Some(&low)
+    ));
+    assert!(!PlayValidator::can_beat_play(
+        &[Card::new(Suit::Spades, Rank::Five)],
+        Some(&high)
+    ));
 }
 
 #[test]
@@ -861,8 +928,14 @@ fn test_validator_pair_beats_pair() {
 
     let low_pattern = PatternRecognizer::analyze_cards(&low_cards).unwrap();
 
-    assert!(PlayValidator::can_beat_play(&high_cards, Some(&low_pattern)));
-    assert!(!PlayValidator::can_beat_play(&low_cards, Some(&PatternRecognizer::analyze_cards(&high_cards).unwrap())));
+    assert!(PlayValidator::can_beat_play(
+        &high_cards,
+        Some(&low_pattern)
+    ));
+    assert!(!PlayValidator::can_beat_play(
+        &low_cards,
+        Some(&PatternRecognizer::analyze_cards(&high_cards).unwrap())
+    ));
 }
 
 // ============================================================================
@@ -887,8 +960,14 @@ fn test_validator_bomb_comparison() {
 
     let small_pattern = PatternRecognizer::analyze_cards(&small_bomb).unwrap();
 
-    assert!(PlayValidator::can_beat_play(&large_bomb, Some(&small_pattern)));
-    assert!(!PlayValidator::can_beat_play(&small_bomb, Some(&PatternRecognizer::analyze_cards(&large_bomb).unwrap())));
+    assert!(PlayValidator::can_beat_play(
+        &large_bomb,
+        Some(&small_pattern)
+    ));
+    assert!(!PlayValidator::can_beat_play(
+        &small_bomb,
+        Some(&PatternRecognizer::analyze_cards(&large_bomb).unwrap())
+    ));
 }
 
 #[test]
@@ -912,7 +991,10 @@ fn test_validator_bomb_count_matters_first() {
     let four_pattern = PatternRecognizer::analyze_cards(&four_king).unwrap();
 
     // 5张5 能打 4张K（5张 > 4张，数量优先）
-    assert!(PlayValidator::can_beat_play(&five_five, Some(&four_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &five_five,
+        Some(&four_pattern)
+    ));
 
     // 但是4张5不能打4张K（数量相同，5 < K）
     let four_five = vec![
@@ -921,7 +1003,10 @@ fn test_validator_bomb_count_matters_first() {
         Card::new(Suit::Clubs, Rank::Five),
         Card::new(Suit::Diamonds, Rank::Five),
     ];
-    assert!(!PlayValidator::can_beat_play(&four_five, Some(&four_pattern)));
+    assert!(!PlayValidator::can_beat_play(
+        &four_five,
+        Some(&four_pattern)
+    ));
 
     // 4张A可以打4张K（数量相同，A > K）
     let four_ace = vec![
@@ -952,8 +1037,14 @@ fn test_validator_bomb_same_rank_compare_count() {
 
     let four_pattern = PatternRecognizer::analyze_cards(&four_tens).unwrap();
 
-    assert!(PlayValidator::can_beat_play(&five_tens, Some(&four_pattern)));
-    assert!(!PlayValidator::can_beat_play(&four_tens, Some(&PatternRecognizer::analyze_cards(&five_tens).unwrap())));
+    assert!(PlayValidator::can_beat_play(
+        &five_tens,
+        Some(&four_pattern)
+    ));
+    assert!(!PlayValidator::can_beat_play(
+        &four_tens,
+        Some(&PatternRecognizer::analyze_cards(&five_tens).unwrap())
+    ));
 }
 
 #[test]
@@ -994,7 +1085,10 @@ fn test_validator_tongzi_comparison() {
     let low_pattern = PatternRecognizer::analyze_cards(&low_tongzi).unwrap();
 
     // K筒子 > 5筒子
-    assert!(PlayValidator::can_beat_play(&high_tongzi, Some(&low_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &high_tongzi,
+        Some(&low_pattern)
+    ));
 }
 
 #[test]
@@ -1026,7 +1120,10 @@ fn test_validator_tongzi_same_rank_compare_suit() {
     let heart_pattern = PatternRecognizer::analyze_cards(&heart_k).unwrap();
 
     // 梅花 > 方块
-    assert!(PlayValidator::can_beat_play(&club_k, Some(&diamond_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &club_k,
+        Some(&diamond_pattern)
+    ));
     // 红桃 > 梅花
     assert!(PlayValidator::can_beat_play(&heart_k, Some(&club_pattern)));
     // 黑桃 > 红桃
@@ -1098,7 +1195,10 @@ fn test_validator_dizha_comparison() {
     let low_pattern = PatternRecognizer::analyze_cards(&low_dizha).unwrap();
 
     // 2地炸 > 5地炸
-    assert!(PlayValidator::can_beat_play(&high_dizha, Some(&low_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &high_dizha,
+        Some(&low_pattern)
+    ));
 }
 
 // ============================================================================
@@ -1126,7 +1226,10 @@ fn test_validator_consecutive_pairs_must_match_length() {
     let two_pattern = PatternRecognizer::analyze_cards(&two_pairs).unwrap();
 
     // 长度不匹配，不能打
-    assert!(!PlayValidator::can_beat_play(&three_pairs, Some(&two_pattern)));
+    assert!(!PlayValidator::can_beat_play(
+        &three_pairs,
+        Some(&two_pattern)
+    ));
 }
 
 #[test]
@@ -1155,7 +1258,10 @@ fn test_validator_airplane_must_match_length() {
     let two_pattern = PatternRecognizer::analyze_cards(&two_airplane).unwrap();
 
     // 长度不匹配，不能打
-    assert!(!PlayValidator::can_beat_play(&three_airplane, Some(&two_pattern)));
+    assert!(!PlayValidator::can_beat_play(
+        &three_airplane,
+        Some(&two_pattern)
+    ));
 }
 
 // ============================================================================
@@ -1275,16 +1381,260 @@ fn test_validator_bomb_complete_example() {
     let five_two_pattern = PatternRecognizer::analyze_cards(&five_two).unwrap();
 
     // 5张10 > 4张A（5张 > 4张，数量优先）
-    assert!(PlayValidator::can_beat_play(&five_ten, Some(&four_ace_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &five_ten,
+        Some(&four_ace_pattern)
+    ));
 
     // 5张2 > 5张10（数量相同，2 > 10）
-    assert!(PlayValidator::can_beat_play(&five_two, Some(&five_ten_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &five_two,
+        Some(&five_ten_pattern)
+    ));
 
     // 6张5 > 5张2（6张 > 5张，数量优先）
-    assert!(PlayValidator::can_beat_play(&six_five, Some(&five_two_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &six_five,
+        Some(&five_two_pattern)
+    ));
 
     // 验证反向不成立
-    assert!(!PlayValidator::can_beat_play(&four_ace, Some(&five_ten_pattern)));
-    assert!(!PlayValidator::can_beat_play(&five_ten, Some(&five_two_pattern)));
-    assert!(!PlayValidator::can_beat_play(&five_two, Some(&PatternRecognizer::analyze_cards(&six_five).unwrap())));
+    assert!(!PlayValidator::can_beat_play(
+        &four_ace,
+        Some(&five_ten_pattern)
+    ));
+    assert!(!PlayValidator::can_beat_play(
+        &five_ten,
+        Some(&five_two_pattern)
+    ));
+    assert!(!PlayValidator::can_beat_play(
+        &five_two,
+        Some(&PatternRecognizer::analyze_cards(&six_five).unwrap())
+    ));
+}
+
+// ============================================================================
+// PlayValidator 边界测试 - Triple Comparison (三张比较规则)
+// ============================================================================
+
+#[test]
+fn test_validator_triple_only_compare_main_rank() {
+    // 三张比较只看主牌点数，带牌数量不影响
+    // 根据 GAME_RULE.md: 三张牌可以带牌（0-2张）
+
+    // 三张5（不带）
+    let triple_five_bare = vec![
+        Card::new(Suit::Spades, Rank::Five),
+        Card::new(Suit::Hearts, Rank::Five),
+        Card::new(Suit::Clubs, Rank::Five),
+    ];
+    let five_pattern = PatternRecognizer::analyze_cards(&triple_five_bare).unwrap();
+
+    // 三张J带1（高于三张5）
+    let triple_jack_with_one = vec![
+        Card::new(Suit::Spades, Rank::Jack),
+        Card::new(Suit::Hearts, Rank::Jack),
+        Card::new(Suit::Clubs, Rank::Jack),
+        Card::new(Suit::Diamonds, Rank::Three),
+    ];
+
+    // 三张J带2（高于三张5）
+    let triple_jack_with_two = vec![
+        Card::new(Suit::Spades, Rank::Jack),
+        Card::new(Suit::Hearts, Rank::Jack),
+        Card::new(Suit::Clubs, Rank::Jack),
+        Card::new(Suit::Diamonds, Rank::Three),
+        Card::new(Suit::Spades, Rank::Four),
+    ];
+
+    // 三张J不带（高于三张5）
+    let triple_jack_bare = vec![
+        Card::new(Suit::Spades, Rank::Jack),
+        Card::new(Suit::Hearts, Rank::Jack),
+        Card::new(Suit::Clubs, Rank::Jack),
+    ];
+
+    // 所有三张J都能打三张5
+    assert!(PlayValidator::can_beat_play(
+        &triple_jack_bare,
+        Some(&five_pattern)
+    ));
+    assert!(PlayValidator::can_beat_play(
+        &triple_jack_with_one,
+        Some(&five_pattern)
+    ));
+    assert!(PlayValidator::can_beat_play(
+        &triple_jack_with_two,
+        Some(&five_pattern)
+    ));
+}
+
+#[test]
+fn test_validator_triple_with_kickers_can_beat_bare() {
+    // 三带1可以打三张不带（只要主牌点数高）
+    let triple_five_bare = vec![
+        Card::new(Suit::Spades, Rank::Five),
+        Card::new(Suit::Hearts, Rank::Five),
+        Card::new(Suit::Clubs, Rank::Five),
+    ];
+    let five_pattern = PatternRecognizer::analyze_cards(&triple_five_bare).unwrap();
+
+    // 三张K带1
+    let triple_king_with_one = vec![
+        Card::new(Suit::Spades, Rank::King),
+        Card::new(Suit::Hearts, Rank::King),
+        Card::new(Suit::Clubs, Rank::King),
+        Card::new(Suit::Diamonds, Rank::Three),
+    ];
+
+    assert!(PlayValidator::can_beat_play(
+        &triple_king_with_one,
+        Some(&five_pattern)
+    ));
+}
+
+#[test]
+fn test_validator_triple_bare_can_beat_with_kickers() {
+    // 三张不带可以打三带2（只要主牌点数高）
+    let triple_five_with_two = vec![
+        Card::new(Suit::Spades, Rank::Five),
+        Card::new(Suit::Hearts, Rank::Five),
+        Card::new(Suit::Clubs, Rank::Five),
+        Card::new(Suit::Diamonds, Rank::Three),
+        Card::new(Suit::Spades, Rank::Four),
+    ];
+    let five_pattern = PatternRecognizer::analyze_cards(&triple_five_with_two).unwrap();
+
+    // 三张A不带
+    let triple_ace_bare = vec![
+        Card::new(Suit::Spades, Rank::Ace),
+        Card::new(Suit::Hearts, Rank::Ace),
+        Card::new(Suit::Clubs, Rank::Ace),
+    ];
+
+    assert!(PlayValidator::can_beat_play(
+        &triple_ace_bare,
+        Some(&five_pattern)
+    ));
+}
+
+#[test]
+fn test_validator_triple_kickers_count_doesnt_matter() {
+    // 三带1 vs 三带2：只看主牌，带牌数量不影响
+    let triple_ten_with_two = vec![
+        Card::new(Suit::Spades, Rank::Ten),
+        Card::new(Suit::Hearts, Rank::Ten),
+        Card::new(Suit::Clubs, Rank::Ten),
+        Card::new(Suit::Diamonds, Rank::Three),
+        Card::new(Suit::Spades, Rank::Four),
+    ];
+    let ten_pattern = PatternRecognizer::analyze_cards(&triple_ten_with_two).unwrap();
+
+    // 三张K带1 能打 三张10带2
+    let triple_king_with_one = vec![
+        Card::new(Suit::Spades, Rank::King),
+        Card::new(Suit::Hearts, Rank::King),
+        Card::new(Suit::Clubs, Rank::King),
+        Card::new(Suit::Diamonds, Rank::Five),
+    ];
+
+    assert!(PlayValidator::can_beat_play(
+        &triple_king_with_one,
+        Some(&ten_pattern)
+    ));
+}
+
+#[test]
+fn test_validator_triple_same_rank_cannot_beat() {
+    // 同点数三张不能互相打
+    let triple_king_bare = vec![
+        Card::new(Suit::Spades, Rank::King),
+        Card::new(Suit::Hearts, Rank::King),
+        Card::new(Suit::Clubs, Rank::King),
+    ];
+    let king_pattern = PatternRecognizer::analyze_cards(&triple_king_bare).unwrap();
+
+    // 另一个三张K带牌
+    let triple_king_with_two = vec![
+        Card::new(Suit::Spades, Rank::King),
+        Card::new(Suit::Hearts, Rank::King),
+        Card::new(Suit::Diamonds, Rank::King),
+        Card::new(Suit::Clubs, Rank::Three),
+        Card::new(Suit::Diamonds, Rank::Four),
+    ];
+
+    // 同点数不能互相打
+    assert!(!PlayValidator::can_beat_play(
+        &triple_king_with_two,
+        Some(&king_pattern)
+    ));
+}
+
+#[test]
+fn test_validator_triple_lower_cannot_beat_higher() {
+    // 低点数三张不能打高点数三张
+    let triple_king_with_one = vec![
+        Card::new(Suit::Spades, Rank::King),
+        Card::new(Suit::Hearts, Rank::King),
+        Card::new(Suit::Clubs, Rank::King),
+        Card::new(Suit::Diamonds, Rank::Three),
+    ];
+    let king_pattern = PatternRecognizer::analyze_cards(&triple_king_with_one).unwrap();
+
+    // 三张5带2 不能打 三张K带1
+    let triple_five_with_two = vec![
+        Card::new(Suit::Spades, Rank::Five),
+        Card::new(Suit::Hearts, Rank::Five),
+        Card::new(Suit::Clubs, Rank::Five),
+        Card::new(Suit::Diamonds, Rank::Three),
+        Card::new(Suit::Spades, Rank::Four),
+    ];
+
+    assert!(!PlayValidator::can_beat_play(
+        &triple_five_with_two,
+        Some(&king_pattern)
+    ));
+}
+
+#[test]
+fn test_validator_triple_all_ranks() {
+    // 测试所有点数的三张比较链
+    let ranks = [
+        Rank::Three,
+        Rank::Four,
+        Rank::Five,
+        Rank::Six,
+        Rank::Seven,
+        Rank::Eight,
+        Rank::Nine,
+        Rank::Ten,
+        Rank::Jack,
+        Rank::Queen,
+        Rank::King,
+        Rank::Ace,
+        Rank::Two,
+    ];
+
+    for i in 0..ranks.len() - 1 {
+        let lower_triple = vec![
+            Card::new(Suit::Spades, ranks[i]),
+            Card::new(Suit::Hearts, ranks[i]),
+            Card::new(Suit::Clubs, ranks[i]),
+        ];
+        let higher_triple = vec![
+            Card::new(Suit::Spades, ranks[i + 1]),
+            Card::new(Suit::Hearts, ranks[i + 1]),
+            Card::new(Suit::Clubs, ranks[i + 1]),
+        ];
+
+        let lower_pattern = PatternRecognizer::analyze_cards(&lower_triple).unwrap();
+
+        // 高点数能打低点数
+        assert!(
+            PlayValidator::can_beat_play(&higher_triple, Some(&lower_pattern)),
+            "三张{:?}应该能打三张{:?}",
+            ranks[i + 1],
+            ranks[i]
+        );
+    }
 }

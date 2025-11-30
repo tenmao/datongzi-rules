@@ -140,6 +140,15 @@ impl Card {
             _ => 0,
         }
     }
+
+    /// Compare cards for display purposes
+    ///
+    /// Orders cards by rank (3-10, J-K, A-2), then by suit (♠♥♣♦) for same rank.
+    /// This is the same as the default Ord implementation.
+    #[must_use]
+    pub fn compare_for_display(a: &Self, b: &Self) -> std::cmp::Ordering {
+        a.cmp(b)
+    }
 }
 
 impl PartialOrd for Card {

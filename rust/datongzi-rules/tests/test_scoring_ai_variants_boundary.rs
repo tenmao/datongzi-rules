@@ -64,12 +64,12 @@ fn test_scoring_round_win_only_scores_5_10_k() {
 
     // 回合中有5、10、K和其他牌
     let cards = vec![
-        Card::new(Suit::Spades, Rank::Five),   // 5分
-        Card::new(Suit::Hearts, Rank::Ten),    // 10分
-        Card::new(Suit::Clubs, Rank::King),    // 10分
-        Card::new(Suit::Diamonds, Rank::Ace),  // 0分
-        Card::new(Suit::Spades, Rank::Two),    // 0分
-        Card::new(Suit::Hearts, Rank::Jack),   // 0分
+        Card::new(Suit::Spades, Rank::Five),  // 5分
+        Card::new(Suit::Hearts, Rank::Ten),   // 10分
+        Card::new(Suit::Clubs, Rank::King),   // 10分
+        Card::new(Suit::Diamonds, Rank::Ace), // 0分
+        Card::new(Suit::Spades, Rank::Two),   // 0分
+        Card::new(Suit::Hearts, Rank::Jack),  // 0分
     ];
 
     let event = engine.create_round_win_event("player1".to_string(), &cards, 1);
@@ -128,9 +128,9 @@ fn test_scoring_finish_bonuses() {
     let events = engine.create_finish_bonus_events(&finish_order);
 
     assert_eq!(events.len(), 3);
-    assert_eq!(events[0].points, 100);  // 上游 +100
-    assert_eq!(events[1].points, -40);  // 二游 -40
-    assert_eq!(events[2].points, -60);  // 三游 -60
+    assert_eq!(events[0].points, 100); // 上游 +100
+    assert_eq!(events[1].points, -40); // 二游 -40
+    assert_eq!(events[2].points, -60); // 三游 -60
 }
 
 #[test]
@@ -142,7 +142,10 @@ fn test_scoring_custom_config_bonuses() {
         41,
         9,
         vec![200, -100, -200],
-        150, 250, 350, 500, // K=150, A=250, 2=350, Dizha=500
+        150,
+        250,
+        350,
+        500, // K=150, A=250, 2=350, Dizha=500
     );
     let mut engine = ScoreComputation::new(config);
 
@@ -417,21 +420,36 @@ fn test_hand_analyzer_control_cards() {
 fn test_config_factory_all_variants() {
     // 测试所有预设变体
     let configs = vec![
-        ("standard_3deck_3player", ConfigFactory::create_standard_3deck_3player(), true),
+        (
+            "standard_3deck_3player",
+            ConfigFactory::create_standard_3deck_3player(),
+            true,
+        ),
         ("4deck_4player", ConfigFactory::create_4deck_4player(), true),
         ("2player", ConfigFactory::create_2player(), true),
         ("quick_game", ConfigFactory::create_quick_game(), false), // 可能有warning（不平均分配）
         ("high_stakes", ConfigFactory::create_high_stakes(), true),
-        ("beginner_friendly", ConfigFactory::create_beginner_friendly(), true),
+        (
+            "beginner_friendly",
+            ConfigFactory::create_beginner_friendly(),
+            true,
+        ),
     ];
 
     for (name, config, should_be_valid) in configs {
         let (is_valid, warnings) = VariantValidator::validate_config(&config);
         if should_be_valid && !is_valid {
-            panic!("Config {} failed validation with warnings: {:?}", name, warnings);
+            panic!(
+                "Config {} failed validation with warnings: {:?}",
+                name, warnings
+            );
         }
         // 所有配置至少应该能通过GameConfig.validate()
-        assert!(config.validate().is_ok(), "Config {} failed GameConfig.validate()", name);
+        assert!(
+            config.validate().is_ok(),
+            "Config {} failed GameConfig.validate()",
+            name
+        );
     }
 }
 
@@ -538,7 +556,7 @@ fn test_variant_validator_invalid_card_distribution() {
 fn test_variant_validator_finish_bonus_mismatch() {
     let invalid = GameConfig::new(
         3,
-        3,  // 3人
+        3, // 3人
         41,
         9,
         vec![100, -40], // 只有2个奖励，但有3人

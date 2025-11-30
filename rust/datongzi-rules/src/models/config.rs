@@ -180,7 +180,7 @@ impl GameConfig {
         // Check deck count is valid
         if self.num_decks == 0 {
             return Err(crate::DatongziError::ConfigError(
-                "Number of decks must be at least 1".to_string()
+                "Number of decks must be at least 1".to_string(),
             ));
         }
 

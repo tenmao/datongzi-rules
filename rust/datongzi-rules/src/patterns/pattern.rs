@@ -14,10 +14,8 @@ pub enum PlayType {
     Pair = 2,
     /// Consecutive pairs (连对, 2+ pairs in sequence)
     ConsecutivePairs = 3,
-    /// Triple (三张)
+    /// Triple with 0-2 kickers (三张，可带0-2张)
     Triple = 4,
-    /// Triple with two kickers (三带二)
-    TripleWithTwo = 5,
     /// Airplane - consecutive triples (飞机)
     Airplane = 6,
     /// Airplane with wings (飞机带翅膀)

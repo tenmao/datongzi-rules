@@ -215,10 +215,7 @@ fn test_tongzi_suit_comparison_same_rank() {
     assert!(PlayValidator::can_beat_play(&spade, Some(&heart_pattern)));
 
     // 反向不行
-    assert!(!PlayValidator::can_beat_play(
-        &diamond,
-        Some(&club_pattern)
-    ));
+    assert!(!PlayValidator::can_beat_play(&diamond, Some(&club_pattern)));
 }
 
 // ============================================================================
@@ -298,7 +295,10 @@ fn test_airplane_same_length_required() {
         Card::new(Suit::Hearts, Rank::Jack),
         Card::new(Suit::Clubs, Rank::Jack),
     ];
-    assert!(!PlayValidator::can_beat_play(&airplane3, Some(&low_pattern)));
+    assert!(!PlayValidator::can_beat_play(
+        &airplane3,
+        Some(&low_pattern)
+    ));
 }
 
 // ============================================================================
@@ -311,7 +311,10 @@ fn test_normal_types_same_type_comparison() {
     let low_single = vec![Card::new(Suit::Spades, Rank::Five)];
     let high_single = vec![Card::new(Suit::Spades, Rank::King)];
     let low_pattern = PatternRecognizer::analyze_cards(&low_single).unwrap();
-    assert!(PlayValidator::can_beat_play(&high_single, Some(&low_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &high_single,
+        Some(&low_pattern)
+    ));
 
     // 对子 vs 对子
     let low_pair = vec![
@@ -337,7 +340,10 @@ fn test_normal_types_same_type_comparison() {
         Card::new(Suit::Clubs, Rank::King),
     ];
     let low_pattern = PatternRecognizer::analyze_cards(&low_triple).unwrap();
-    assert!(PlayValidator::can_beat_play(&high_triple, Some(&low_pattern)));
+    assert!(PlayValidator::can_beat_play(
+        &high_triple,
+        Some(&low_pattern)
+    ));
 }
 
 #[test]
@@ -567,10 +573,10 @@ fn test_scoring_complete_game_flow() {
 
     // 回合1：Player1获胜，得到5/10/K的分数
     let round1_cards = vec![
-        Card::new(Suit::Spades, Rank::Five),   // 5分
-        Card::new(Suit::Hearts, Rank::Ten),    // 10分
-        Card::new(Suit::Clubs, Rank::King),    // 10分
-        Card::new(Suit::Diamonds, Rank::Ace),  // 0分
+        Card::new(Suit::Spades, Rank::Five),  // 5分
+        Card::new(Suit::Hearts, Rank::Ten),   // 10分
+        Card::new(Suit::Clubs, Rank::King),   // 10分
+        Card::new(Suit::Diamonds, Rank::Ace), // 0分
     ];
     engine.create_round_win_event("player1".to_string(), &round1_cards, 1);
 
@@ -611,5 +617,8 @@ fn test_scoring_complete_game_flow() {
     assert_eq!(p3_score, 100 - 60);
 
     // 验证总和为0（零和游戏）
-    assert_eq!(p1_score + p2_score + p3_score, 25 + 400 + 100 + 100 - 40 - 60);
+    assert_eq!(
+        p1_score + p2_score + p3_score,
+        25 + 400 + 100 + 100 - 40 - 60
+    );
 }
