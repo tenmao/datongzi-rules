@@ -230,8 +230,9 @@ impl PatternRecognizer {
         cards: &[Card],
         rank_counts: &HashMap<Rank, usize>,
     ) -> Option<PlayPattern> {
-        if cards.len() < 8 {
-            // Minimum: 2 triples (6) + 2 wings (2)
+        if cards.len() < 7 {
+            // Minimum: 2 triples (6) + 1 wing (1)
+            // Rule: 每组可以带0-2张，所以最少带1张翅膀
             return None;
         }
 
@@ -261,8 +262,10 @@ impl PatternRecognizer {
                     let triple_cards = num_triples * 3;
                     let wing_cards = cards.len() - triple_cards;
 
-                    // Check if wing count is valid: N <= wings <= 2N
-                    if wing_cards >= num_triples && wing_cards <= 2 * num_triples {
+                    // Check if wing count is valid: 0 < wings <= 2N
+                    // Rule: 每组可以带0-2张，所以总翅膀数在1到2N之间
+                    // Note: wing_cards > 0 because we're in AirplaneWithWings check
+                    if wing_cards > 0 && wing_cards <= 2 * num_triples {
                         let highest_rank = *candidate_ranks.last()?;
                         return Some(PlayPattern::new(
                             PlayType::AirplaneWithWings,
@@ -374,9 +377,18 @@ impl PatternRecognizer {
     }
 
     /// Check if ranks are consecutive.
+    ///
+    /// Rule: "2和joker不参与连对和飞机，AA22不能作为连对，AAA222也不能作为飞机"
+    /// Rank::Two (value 15) cannot participate in consecutive sequences.
     fn are_consecutive(ranks: &[Rank]) -> bool {
         if ranks.len() <= 1 {
             return true;
+        }
+
+        // Rule: 2 cannot participate in consecutive pairs or airplane
+        // Check if any rank is Two
+        if ranks.iter().any(|r| *r == Rank::Two) {
+            return false;
         }
 
         // Convert to values for comparison
@@ -580,29 +592,36 @@ impl PlayValidator {
         }
 
         // Special case 2: Tongzi rules
+        // Tongzi is a trump card that beats: all non-trump patterns, Bombs, and lower Tongzi
         if new_pattern.play_type == PlayType::Tongzi {
-            if current_pattern.play_type == PlayType::Bomb {
-                return true; // Tongzi beats Bomb
-            } else if current_pattern.play_type != PlayType::Tongzi {
-                return false; // Tongzi can only beat Bomb or other Tongzi
-            }
-            // Tongzi vs Tongzi: compare by rank, then by suit
-            match new_pattern
-                .primary_rank
-                .value()
-                .cmp(&current_pattern.primary_rank.value())
-            {
-                Ordering::Greater => return true,
-                Ordering::Equal => {
-                    // Both suits must not be None for comparison
-                    if let (Some(new_suit), Some(current_suit)) =
-                        (new_pattern.primary_suit, current_pattern.primary_suit)
-                    {
-                        return new_suit.value() > current_suit.value();
-                    }
-                    return false;
+            match current_pattern.play_type {
+                PlayType::Dizha => {
+                    return false; // Tongzi cannot beat Dizha
                 }
-                Ordering::Less => return false,
+                PlayType::Tongzi => {
+                    // Tongzi vs Tongzi: compare by rank, then by suit
+                    match new_pattern
+                        .primary_rank
+                        .value()
+                        .cmp(&current_pattern.primary_rank.value())
+                    {
+                        Ordering::Greater => return true,
+                        Ordering::Equal => {
+                            // Both suits must not be None for comparison
+                            if let (Some(new_suit), Some(current_suit)) =
+                                (new_pattern.primary_suit, current_pattern.primary_suit)
+                            {
+                                return new_suit.value() > current_suit.value();
+                            }
+                            return false;
+                        }
+                        Ordering::Less => return false,
+                    }
+                }
+                _ => {
+                    // Tongzi beats all non-Dizha patterns (including Bomb and all normal patterns)
+                    return true;
+                }
             }
         }
 
@@ -630,26 +649,25 @@ impl PlayValidator {
             return false; // Only Bomb/Tongzi/Dizha can beat Bomb
         }
 
-        // Same type comparison
-        if new_pattern.play_type != current_pattern.play_type {
-            return false;
-        }
-
-        // For Triple: kicker count doesn't matter, only compare main rank
-        // 三张比较只看主牌点数，带牌数量不影响（三张J可以打三张5带2张）
-
-        // For Airplane/AirplaneWithWings: must have same chain length (number of consecutive triples)
+        // For Airplane/AirplaneWithWings: can beat each other if same chain length
         // 飞机比较只看连续三张的数量和点数，带牌数量不影响
-        if matches!(
-            new_pattern.play_type,
-            PlayType::Airplane | PlayType::AirplaneWithWings
-        ) {
+        // Airplane and AirplaneWithWings can beat each other
+        let is_airplane_type =
+            |t: PlayType| matches!(t, PlayType::Airplane | PlayType::AirplaneWithWings);
+        if is_airplane_type(new_pattern.play_type) && is_airplane_type(current_pattern.play_type) {
             let new_ranks = &new_pattern.secondary_ranks;
             let current_ranks = &current_pattern.secondary_ranks;
             if new_ranks.len() != current_ranks.len() {
                 return false;
             }
+            // Continue to compare by primary_rank
+        } else if new_pattern.play_type != current_pattern.play_type {
+            // Same type comparison for other patterns
+            return false;
         }
+
+        // For Triple: kicker count doesn't matter, only compare main rank
+        // 三张比较只看主牌点数，带牌数量不影响（三张J可以打三张5带2张）
 
         // For ConsecutivePairs: must have same length
         if new_pattern.play_type == PlayType::ConsecutivePairs {
@@ -660,8 +678,10 @@ impl PlayValidator {
             }
         }
 
-        // Compare by strength (primary_rank for most patterns)
-        new_pattern.strength > current_pattern.strength
+        // Compare by primary_rank for same type patterns
+        // For normal patterns (Single, Pair, Triple, Airplane, ConsecutivePairs),
+        // we compare by primary_rank directly instead of using strength encoding
+        new_pattern.primary_rank.value() > current_pattern.primary_rank.value()
     }
 }
 

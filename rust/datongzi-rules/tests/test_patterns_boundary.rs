@@ -198,7 +198,8 @@ fn test_consecutive_pairs_k_a_is_consecutive() {
 
 #[test]
 fn test_consecutive_pairs_a_2_behavior() {
-    // A-A-2-2 的行为取决于实际实现
+    // GAME_RULE.md (updated): "2和joker不参与连对和飞机，AA22不能作为连对"
+    // A-A-2-2 不能被识别为连对
     let cards = vec![
         Card::new(Suit::Spades, Rank::Ace),
         Card::new(Suit::Hearts, Rank::Ace),
@@ -206,8 +207,11 @@ fn test_consecutive_pairs_a_2_behavior() {
         Card::new(Suit::Hearts, Rank::Two),
     ];
     let pattern = PatternRecognizer::analyze_cards(&cards);
-    // 只验证能识别出某种牌型
-    assert!(pattern.is_some());
+    // AA22 应该无法被识别为任何合法牌型
+    assert!(
+        pattern.is_none(),
+        "AA22 should NOT be a valid pattern (2 cannot participate in consecutive pairs)"
+    );
 }
 
 #[test]
@@ -451,8 +455,9 @@ fn test_airplane_can_wrap_through_ace() {
 }
 
 #[test]
-fn test_airplane_can_wrap_through_two() {
-    // A-A-A-2-2-2 可以是飞机
+fn test_airplane_cannot_include_two() {
+    // GAME_RULE.md (updated): "AAA222也不能作为飞机"
+    // A-A-A-2-2-2 不能是飞机（2不参与飞机）
     let cards = vec![
         Card::new(Suit::Spades, Rank::Ace),
         Card::new(Suit::Hearts, Rank::Ace),
@@ -462,8 +467,11 @@ fn test_airplane_can_wrap_through_two() {
         Card::new(Suit::Clubs, Rank::Two),
     ];
     let pattern = PatternRecognizer::analyze_cards(&cards);
-    assert!(pattern.is_some());
-    assert_eq!(pattern.unwrap().play_type, PlayType::Airplane);
+    // AAA222 应该无法被识别为飞机
+    assert!(
+        pattern.is_none(),
+        "AAA222 should NOT be a valid airplane (2 cannot participate in airplane)"
+    );
 }
 
 // ============================================================================
@@ -594,9 +602,11 @@ fn test_airplane_with_too_many_wings_invalid() {
 }
 
 #[test]
-fn test_airplane_with_too_few_wings_becomes_invalid() {
-    // 2组飞机最少带2张翅膀（N），带1张应该被识别为其他或非法
-    // 2组（6张）+ 1张 = 7张（少于N=2）
+fn test_airplane_with_one_wing_is_valid() {
+    // GAME_RULE.md: "飞机中的每一组都可以带0-2张"
+    // 2组飞机带1张翅膀应该是有效的 AirplaneWithWings
+    // 翅膀总数范围：1 到 2N（N是三张组数）
+    // 2组（6张）+ 1张翅膀 = 7张，是有效的
     let cards = vec![
         Card::new(Suit::Spades, Rank::Jack),
         Card::new(Suit::Hearts, Rank::Jack),
@@ -607,14 +617,13 @@ fn test_airplane_with_too_few_wings_becomes_invalid() {
         Card::new(Suit::Spades, Rank::Five),
     ];
     let pattern = PatternRecognizer::analyze_cards(&cards);
-    // 应该无法识别为AirplaneWithWings（翅膀太少）
-    if let Some(p) = pattern {
-        assert_ne!(
-            p.play_type,
-            PlayType::AirplaneWithWings,
-            "翅膀太少，不应该是 AirplaneWithWings"
-        );
-    }
+    // 应该被识别为 AirplaneWithWings
+    assert!(pattern.is_some());
+    assert_eq!(
+        pattern.unwrap().play_type,
+        PlayType::AirplaneWithWings,
+        "2组飞机+1张翅膀应该是 AirplaneWithWings"
+    );
 }
 
 #[test]

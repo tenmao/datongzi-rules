@@ -470,16 +470,19 @@ impl HandPatternAnalyzer {
     }
 
     /// Find longest airplane chains (consecutive triples).
+    ///
+    /// Note: Rank::Two does not participate in consecutive structures
+    /// (2 is the highest card in Da Tong Zi, not part of sequences)
     fn _find_airplane_chains(cards: &[Card]) -> Vec<Vec<Card>> {
         let mut rank_groups: HashMap<Rank, Vec<Card>> = HashMap::new();
         for card in cards {
             rank_groups.entry(card.rank).or_default().push(*card);
         }
 
-        // Get ranks with at least 3 cards
+        // Get ranks with at least 3 cards, excluding Two (2 doesn't participate in sequences)
         let mut valid_ranks: Vec<Rank> = rank_groups
             .iter()
-            .filter(|(_r, cards)| cards.len() >= 3)
+            .filter(|(r, cards)| cards.len() >= 3 && **r != Rank::Two)
             .map(|(r, _cards)| *r)
             .collect();
         valid_ranks.sort();
@@ -527,16 +530,19 @@ impl HandPatternAnalyzer {
     }
 
     /// Find longest consecutive pair chains.
+    ///
+    /// Note: Rank::Two does not participate in consecutive structures
+    /// (2 is the highest card in Da Tong Zi, not part of sequences)
     fn _find_consecutive_pair_chains(cards: &[Card]) -> Vec<Vec<Card>> {
         let mut rank_groups: HashMap<Rank, Vec<Card>> = HashMap::new();
         for card in cards {
             rank_groups.entry(card.rank).or_default().push(*card);
         }
 
-        // Get ranks with at least 2 cards
+        // Get ranks with at least 2 cards, excluding Two (2 doesn't participate in sequences)
         let mut valid_ranks: Vec<Rank> = rank_groups
             .iter()
-            .filter(|(_r, cards)| cards.len() >= 2)
+            .filter(|(r, cards)| cards.len() >= 2 && **r != Rank::Two)
             .map(|(r, _cards)| *r)
             .collect();
         valid_ranks.sort();

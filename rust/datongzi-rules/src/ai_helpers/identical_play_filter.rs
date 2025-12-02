@@ -203,7 +203,7 @@ pub fn filter_singles(hand: &[Card]) -> Vec<Vec<Card>> {
         if let Some(suit) = select_safe_suit(hand, rank) {
             // Find the card with this rank and suit
             if let Some(card) = hand.iter().find(|c| c.rank == rank && c.suit == suit) {
-                singles.push(vec![card.clone()]);
+                singles.push(vec![*card]);
             }
         }
     }
@@ -259,7 +259,7 @@ pub fn filter_pairs(hand: &[Card]) -> Vec<Vec<Card>> {
         // First, try to get 2 non-protected suits
         for card in &cards {
             if !protected_suits.contains(&card.suit) && selected.len() < 2 {
-                selected.push((*card).clone());
+                selected.push(**card);
             }
         }
 
@@ -267,7 +267,7 @@ pub fn filter_pairs(hand: &[Card]) -> Vec<Vec<Card>> {
         if selected.len() < 2 {
             for card in &cards {
                 if selected.len() < 2 && !selected.iter().any(|c| c.suit == card.suit) {
-                    selected.push((*card).clone());
+                    selected.push(**card);
                 }
             }
         }
@@ -328,7 +328,7 @@ pub fn filter_triples(hand: &[Card]) -> Vec<Vec<Card>> {
         // First, try to get 3 non-protected suits
         for card in &cards {
             if !protected_suits.contains(&card.suit) && selected.len() < 3 {
-                selected.push((*card).clone());
+                selected.push(**card);
             }
         }
 
@@ -336,7 +336,7 @@ pub fn filter_triples(hand: &[Card]) -> Vec<Vec<Card>> {
         if selected.len() < 3 {
             for card in &cards {
                 if selected.len() < 3 && !selected.iter().any(|c| c.suit == card.suit) {
-                    selected.push((*card).clone());
+                    selected.push(**card);
                 }
             }
         }
@@ -368,10 +368,7 @@ pub fn filter_consecutive_pairs(hand: &[Card]) -> Vec<Vec<Card>> {
     // Group by rank
     let mut rank_groups: HashMap<Rank, Vec<&Card>> = HashMap::new();
     for card in hand {
-        rank_groups
-            .entry(card.rank)
-            .or_insert_with(Vec::new)
-            .push(card);
+        rank_groups.entry(card.rank).or_default().push(card);
     }
 
     // Get ranks that have at least 2 cards
@@ -410,7 +407,7 @@ pub fn filter_consecutive_pairs(hand: &[Card]) -> Vec<Vec<Card>> {
                     // First, try to get 2 non-protected suits
                     for card in &cards_of_rank {
                         if !protected_suits.contains(&card.suit) && selected.len() < 2 {
-                            selected.push((*card).clone());
+                            selected.push(**card);
                         }
                     }
 
@@ -418,7 +415,7 @@ pub fn filter_consecutive_pairs(hand: &[Card]) -> Vec<Vec<Card>> {
                     if selected.len() < 2 {
                         for card in &cards_of_rank {
                             if selected.len() < 2 && !selected.iter().any(|c| c.suit == card.suit) {
-                                selected.push((*card).clone());
+                                selected.push(**card);
                             }
                         }
                     }
@@ -427,7 +424,7 @@ pub fn filter_consecutive_pairs(hand: &[Card]) -> Vec<Vec<Card>> {
                     if selected.len() < 2 {
                         for card in &cards_of_rank {
                             if selected.len() < 2 {
-                                selected.push((*card).clone());
+                                selected.push(**card);
                             }
                         }
                     }
@@ -446,8 +443,16 @@ pub fn filter_consecutive_pairs(hand: &[Card]) -> Vec<Vec<Card>> {
 }
 
 /// Helper function to check if ranks are consecutive
+///
+/// Rule: "2和joker不参与连对和飞机，AA22不能作为连对，AAA222也不能作为飞机"
+/// Rank::Two cannot participate in consecutive sequences.
 fn is_consecutive_ranks(ranks: &[Rank]) -> bool {
     if ranks.len() < 2 {
+        return false;
+    }
+
+    // Rule: 2 cannot participate in consecutive pairs or airplane
+    if ranks.iter().any(|r| *r == Rank::Two) {
         return false;
     }
 
@@ -610,5 +615,53 @@ mod tests {
         assert_eq!(consecutive_pairs[0].len(), 4); // 2 pairs = 4 cards
         assert_eq!(consecutive_pairs[0][0].rank, Rank::Five);
         assert_eq!(consecutive_pairs[0][2].rank, Rank::Six);
+    }
+
+    #[test]
+    fn test_filter_consecutive_pairs_excludes_two() {
+        // GAME_RULE.md: "2和joker不参与连对和飞机，AA22不能作为连对"
+        // ♠A♥A♠2♥2 - Should NOT generate AA22 consecutive pairs
+        let hand = vec![
+            make_card(Suit::Spades, Rank::Ace),
+            make_card(Suit::Hearts, Rank::Ace),
+            make_card(Suit::Spades, Rank::Two),
+            make_card(Suit::Hearts, Rank::Two),
+        ];
+
+        let consecutive_pairs = filter_consecutive_pairs(&hand);
+        // Should NOT produce any consecutive pairs containing Two
+        for cp in &consecutive_pairs {
+            let contains_two = cp.iter().any(|c| c.rank == Rank::Two);
+            assert!(
+                !contains_two,
+                "Consecutive pairs should NOT contain Rank::Two"
+            );
+        }
+    }
+
+    #[test]
+    fn test_filter_consecutive_pairs_excludes_longer_sequence_with_two() {
+        // ♠Q♥Q♠K♥K♠A♥A♠2♥2 - Should NOT generate QQKKAA22
+        let hand = vec![
+            make_card(Suit::Spades, Rank::Queen),
+            make_card(Suit::Hearts, Rank::Queen),
+            make_card(Suit::Spades, Rank::King),
+            make_card(Suit::Hearts, Rank::King),
+            make_card(Suit::Spades, Rank::Ace),
+            make_card(Suit::Hearts, Rank::Ace),
+            make_card(Suit::Spades, Rank::Two),
+            make_card(Suit::Hearts, Rank::Two),
+        ];
+
+        let consecutive_pairs = filter_consecutive_pairs(&hand);
+        // Should produce QQKKAA but NOT any sequence with Two
+        for cp in &consecutive_pairs {
+            let contains_two = cp.iter().any(|c| c.rank == Rank::Two);
+            assert!(
+                !contains_two,
+                "Consecutive pairs should NOT contain Rank::Two, got: {:?}",
+                cp.iter().map(|c| c.rank).collect::<Vec<_>>()
+            );
+        }
     }
 }
